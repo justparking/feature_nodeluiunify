@@ -1,0 +1,8 @@
+subprojects {
+    apply plugin: 'java'
+    group = 'org.nodel'
+    version = '2.1.1'
+    repositories {
+        mavenCentral()
+    }
+}

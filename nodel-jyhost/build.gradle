@@ -1,0 +1,103 @@
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'maven'
+apply plugin: 'eclipse'
+
+repositories {
+    mavenCentral()
+}
+
+task gitBranch(type:Exec) {
+  commandLine 'git', 'rev-parse', '--abbrev-ref', 'HEAD'
+  standardOutput = new ByteArrayOutputStream()
+  ext.output = {
+    return standardOutput.toString().trim()
+  }
+}
+
+task gitId(type:Exec) {
+  commandLine 'git', 'rev-parse', 'HEAD'
+  standardOutput = new ByteArrayOutputStream()
+  ext.output = {
+    return standardOutput.toString().trim()
+  }
+}
+
+task gitRev(type:Exec) {
+    commandLine 'git', 'rev-list', '--count', 'HEAD'
+    standardOutput = new ByteArrayOutputStream()
+    ext.output = {
+        return standardOutput.toString().trim()
+    }
+}
+
+gitBranch.execute()
+gitRev.execute()
+gitId.execute()
+
+def branch = gitBranch.output()
+if (branch.equals("master"))
+    branch = "dev"
+
+def rev = gitRev.output()
+// strip out non-alphanumeric (e.g. the '+' in '1234+')
+rev = rev.replaceAll(/[^a-zA-Z0-9]/, '')
+
+def buildSummary = gitId.output();
+
+mainClassName = "org.nodel.jyhost.Launch"
+
+jar {
+	from "$buildDir/output"
+    baseName = 'nodel-jyhost'
+    manifest {
+         attributes 'Implementation-Title': 'Nodel JyHost',
+                    'Implementation-Version': version
+    }    
+}
+
+task fatJar(type: Jar) {
+	manifest {
+        attributes 'Implementation-Title': 'Nodel JyHost',  
+        	'Implementation-Version': version,
+        	'Main-Class': mainClassName
+    }
+    appendix = branch 
+    baseName = 'nodelhost'
+    classifier = 'rev' + rev
+    destinationDir new File(buildDir, 'distributions/standalone')
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+    exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
+}
+
+task unversioned(dependsOn:'fatJar', type: Copy) {
+    from(new File(buildDir, 'distributions/standalone')) {
+        rename '.*($version)*', 'nodelhost.jar'
+    }
+
+    into new File(buildDir, 'distributions/standalone')
+}
+
+build.doLast {
+    tasks.fatJar.execute()
+}
+
+dependencies {
+    compile project(':nodel-webui-js')
+    compile project(':nodel-framework')
+    compile 'commons-daemon:commons-daemon:1.0.15'
+    compile 'org.slf4j:slf4j-api:1.7.10'
+    compile 'org.python:jython-standalone:2.5.4-rc1'
+
+    // for the Nodel HTTP client:
+	compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.5'
+
+    // convenience dependency: required *only* for 'recipe sync' node
+    compile 'org.eclipse.jgit:org.eclipse.jgit:3.7.1.+'
+
+    // convenience dependency: required for new SNMP-based nodes 
+    compile('org.snmp4j:snmp4j:2.5.8') {
+        exclude group:'log4j', module:'log4j' // (brings one extra dependency: log4j; can explicity exclude it because it's optional at runtime)
+    }
+}
