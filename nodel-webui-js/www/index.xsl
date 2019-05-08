@@ -1,0 +1,657 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+  <xsl:import href="templates.xsl"/>
+  <xsl:output method="html" indent="yes" doctype-system="about:legacy-compat"/>
+  <xsl:variable name="allowedSymbols" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'"/>
+  <xsl:template match="/">
+    <html lang="en" xsl:version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+      <head>
+        <meta charset="utf-8"/>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+        <meta name="apple-mobile-web-app-capable" content="yes"/>
+        <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+        <meta name="theme-color" content="#000000"/>
+        <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+        <title></title>
+        <!-- Bootstrap -->
+        <link rel="stylesheet">
+          <xsl:attribute name="href">
+            <xsl:choose>
+              <xsl:when test="/pages/@theme">
+                <xsl:text>css/components.</xsl:text>
+                <xsl:value-of select="/pages/@theme"/>
+                <xsl:text>.css</xsl:text>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:text>css/components.css</xsl:text>
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:attribute>
+        </link>
+        <link href="css/main.css" rel="stylesheet"/>
+        <link href="img/favicon.ico" rel="shortcut icon"/>
+      </head>
+      <body>
+        <xsl:if test="//footer">
+          <xsl:attribute name="class">
+            <xsl:text>hasfooter</xsl:text>
+          </xsl:attribute>
+        </xsl:if>
+        <!-- main nav -->
+        <nav class="" data-toggle="collapse" data-target=".nav-collapse">
+          <xsl:attribute name="class">
+            <xsl:choose>
+              <xsl:when test="/pages/@theme">
+                <xsl:text>navbar navbar-fixed-top navbar-</xsl:text>
+                <xsl:value-of select="/pages/@theme"/>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:text>navbar navbar-fixed-top navbar-inverse</xsl:text>
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:attribute>
+          <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#nodel-navbar" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <div class="navbar-brand">
+                <xsl:choose>
+                <xsl:when test="/pages/@logo">
+                  <img src="{/pages/@logo}"/>
+                </xsl:when>
+                <xsl:otherwise>
+                  <img src="img/logo.png"/>
+                </xsl:otherwise>
+                </xsl:choose>
+                <xsl:if test="/pages/header/nodel/@type='hosticon'">
+                  <span class="nodel-icon"><a target="_blank"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"/></a></span>
+                </xsl:if>
+                <span id="title"><xsl:value-of select="/pages/@title"/></span>
+              </div>
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="nodel-navbar" role="navigation">
+              <ul class="nav navbar-nav">
+                <xsl:for-each select="/pages/page|/pages/pagegroup">
+                  <xsl:if test="self::pagegroup">
+                  <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><xsl:value-of select="@title"/><span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                      <xsl:for-each select="page">
+                        <li>
+                          <a href="#" data-nav="{translate(@title,translate(@title,$allowedSymbols,''),'')}" data-toggle="collapse" data-target="#nodel-navbar.in">
+                            <xsl:if test="@action">
+                              <xsl:attribute name="data-action">
+                                <xsl:value-of select="@action"/>
+                              </xsl:attribute>
+                            </xsl:if>
+                            <xsl:value-of select="@title"/>
+                          </a>
+                        </li>
+                      </xsl:for-each>
+                    </ul>
+                  </li>
+                  </xsl:if>
+                    <xsl:if test="self::page">
+                    <li>
+                      <a href="#" data-nav="{translate(@title,translate(@title,$allowedSymbols,''),'')}" data-toggle="collapse" data-target="#nodel-navbar.in">
+                        <xsl:if test="@action">
+                          <xsl:attribute name="data-action">
+                            <xsl:value-of select="@action"/>
+                          </xsl:attribute>
+                        </xsl:if>
+                        <xsl:value-of select="@title"/>
+                      </a>
+                    </li>
+                  </xsl:if>
+                </xsl:for-each>
+              <!--<xsl:for-each select="/pages/page[not(page)]">
+                <li><a href="#" data-nav="{@title}"><xsl:value-of select="@title"/></a></li>
+              </xsl:for-each>-->
+              </ul>
+              <div class="navbar-right">
+                <xsl:if test="/pages/header/input or /pages/header/button or /pages/header/switch">
+                  <div class="navbar-form">
+                    <xsl:for-each select="/pages/header/input|/pages/header/button|/pages/header/switch">
+                      <xsl:if test="@type='checkbox'">
+                        <div class="checkbox">
+                          <label>
+                            <input type="checkbox" data-action="{@action}" data-event="{@event}" value="true"/><xsl:value-of select="text()"/>
+                          </label>
+                        </div>
+                      </xsl:if>
+                      <xsl:apply-templates select="button|switch"/>
+                    </xsl:for-each>
+                  </div>
+                </xsl:if>
+                <xsl:if test="/pages/header/nodel">
+                  <xsl:for-each select="/pages/header/nodel">
+                    <xsl:if test="@type='nav'">
+                      <ul class="nav navbar-nav srchgrp">
+                        <li class="dropdown">
+                          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Nav <span class="caret"></span></a>
+                          <ul class="dropdown-menu">
+                            <li class="form">
+                              <div>
+                                <input class="form-control node goto" type="text" placeholder="search nodes"/>
+                              </div>
+                            </li>
+                            <li class="form">
+                              <div>
+                                <select class="form-control uipicker goto" type="text"/>
+                              </div>
+                            </li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </xsl:if>
+                  </xsl:for-each>
+                </xsl:if>
+                <p class="navbar-text" id="clock"></p>
+              </div>
+            </div><!-- /.navbar-collapse -->
+          </div><!-- /.container-fluid -->
+        </nav>
+        <!-- end main nav -->
+        <!-- offline modal -->
+        <div class="modal" id="offline" tabindex="-1" role="dialog" aria-labelledby="offlinelabel" data-backdrop="static" data-keyboard="false" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h4 class="modal-title" id="offlinelabel">Offline</h4>
+              </div>
+              <div class="modal-body">
+                <p>The system is currently offline. Please wait...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- end offline modal -->
+        <!-- confirm modal -->
+        <div class="modal" id="confirm" tabindex="-1" role="dialog" aria-labelledby="confirmlabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&#215;</button>
+                <h4 class="modal-title" id="confirmlabel"></h4>
+              </div>
+              <div class="modal-body">
+                <p id="confirmtext"></p>
+                <div id="confirmkeypad">
+                  <div class="row">
+                    <div class="col-xs-4"><a href="#" class="btn btn-block btn-default" data-keypad="1">1</a></div>
+                    <div class="col-xs-4"><a href="#" class="btn btn-block btn-default" data-keypad="2">2</a></div>
+                    <div class="col-xs-4"><a href="#" class="btn btn-block btn-default" data-keypad="3">3</a></div>
+                  </div>
+                  <div class="row">
+                    <div class="col-xs-4"><a href="#" class="btn btn-block btn-default" data-keypad="4">4</a></div>
+                    <div class="col-xs-4"><a href="#" class="btn btn-block btn-default" data-keypad="5">5</a></div>
+                    <div class="col-xs-4"><a href="#" class="btn btn-block btn-default" data-keypad="6">6</a></div>
+                  </div>
+                  <div class="row">
+                    <div class="col-xs-4"><a href="#" class="btn btn-block btn-default" data-keypad="7">7</a></div>
+                    <div class="col-xs-4"><a href="#" class="btn btn-block btn-default" data-keypad="8">8</a></div>
+                    <div class="col-xs-4"><a href="#" class="btn btn-block btn-default" data-keypad="9">9</a></div>
+                  </div>
+                  <div class="row">
+                    <div class="col-xs-4 col-xs-offset-4"><a href="#" class="btn btn-block btn-default" data-keypad="0">0</a></div>
+                    <div class="col-xs-4"><a href="#" class="btn btn-block btn-default" data-keypad="-1">&#x232b;</a></div>
+                  </div>
+                  <div class="row">
+                    <div class="col-xs-12">
+                      <input id="confirmcodesrc" type="hidden" data-event="ConfirmCode"/>
+                      <input id="confirmcode" class="form-control" type="password" readonly="true"/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button id="confirmaction" class="btn btn-danger btn-ok">Ok</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- end offline modal -->
+        <!-- alert -->
+        <div class="alert collapse alert-floating">
+          <span class="message"></span>
+        </div>
+        <!-- end alert -->
+        <!-- pages -->
+        <xsl:for-each select="//page">
+          <div class="container-fluid page" data-section="{translate(@title,translate(@title,$allowedSymbols,''),'')}">
+            <xsl:apply-templates select="row"/>
+            <xsl:apply-templates select="*[starts-with(name(), 'special_')]"/>
+          </div>
+        </xsl:for-each>
+        <!-- end pages -->
+        <!-- footer -->
+        <xsl:if test="//footer">
+          <footer>
+            <xsl:attribute name="class">
+              <xsl:choose>
+                <xsl:when test="/pages/@theme">
+                  <xsl:text>navbar navbar-fixed-bottom navbar-</xsl:text>
+                  <xsl:value-of select="/pages/@theme"/>
+                </xsl:when>
+                <xsl:otherwise>
+                  <xsl:text>navbar navbar-fixed-bottom navbar-inverse</xsl:text>
+                </xsl:otherwise>
+              </xsl:choose>
+            </xsl:attribute>
+            <div class="container-fluid">
+              <xsl:for-each select="//footer">
+                <xsl:apply-templates select="row"/>
+              </xsl:for-each>
+            </div>
+          </footer>
+        </xsl:if>
+        <!-- end footer -->
+        <script src="js/components.js"></script>
+        <script src="js/main.js"></script>
+        <script id="dynamicSelect" type="text/x-jsrender">
+        <![CDATA[
+          {{for arg}}
+            <li><a href="#" data-arg="{{if key}}{{>key}}{{else}}{{>value}}{{/if}}">{{>value}}</a></li>
+          {{/for}}
+        ]]>
+        </script>
+        <script id="switchTmpl" type="text/x-jsrender">
+        <![CDATA[
+          <%if type=="string"%>
+            <%include ~id=~genid() tmpl="#stringTmpl"/%>
+          <%else type=="boolean"%>
+            <%include ~id=~genid() tmpl="#booleanTmpl"/%>
+          <%else type=="number" || type=="integer"%>
+            <%include ~id=~genid() tmpl="#numberTmpl"/%>
+          <%else type=="object"%>
+            <%include tmpl="#objectTmpl"/%>
+          <%else type=="array"%>
+            <%include ~id=~genid() tmpl="#arrayTmpl"/%>
+          <%/if%>
+        ]]>
+        </script>
+        <script id="baseTmpl" type="text/x-jsrender">
+        <![CDATA[
+          <form data-form="true" class="base" autocomplete="off">
+            <fieldset>
+              <%if btntop%>
+                <button type="submit" class="btn btn-default btn-top">
+                  <%>btntitle%>
+                  <%if btnfaicon%>
+                    <span class="glyphicon glyphicon-<%:btnicon%>" aria-hidden="true"></span>
+                  <%/if%>
+                  <%if btnfaicon%>
+                    <span class="fa fa-<%:btnfaicon%>" aria-hidden="true"></span>
+                  <%/if%>
+                </button>
+              <%/if%>
+              <%if title%>
+                <h6 class="text-break"><%>title%></h6>
+              <%/if%>
+              <%for schema ~key=key?key:''%>
+                <%if type=="object"%>
+                  {^{if ~initObj('<%:~key%>', <%:~key%>)}}
+                    {^{for <%:~key%>}}
+                      <%props properties sort="prop.order"%>
+                        <%for prop ~key=key%>
+                          <%include tmpl="#switchTmpl"/%>
+                        <%/for%>
+                      <%/props%>
+                    {{/for}}
+                  {{/if}}
+                <%else%>
+                  <%include tmpl="#switchTmpl"/%>
+                <%/if%>  
+              <%/for%>
+              <%if !btntop%>
+                <button type="submit" class="btn btn-default" title="<%:btntitle%>">
+                  <%>btntext%>
+                  <%if btnicon%>
+                    <span class="glyphicon glyphicon-<%:btnicon%>" aria-hidden="true"></span>
+                  <%/if%>
+                  <%if btnfaicon%>
+                    <span class="fa fa-<%:btnfaicon%>" aria-hidden="true"></span>
+                  <%/if%>
+                </button>
+              <%/if%>
+            </fieldset>
+          </form>
+        ]]>
+        </script>
+        <script id="objectTmpl" type="text/x-jsrender">
+        <![CDATA[
+          <div class="panel panel-default">
+            <%if title%>
+              <div class="panel-heading"><%>title%></div>
+            <%/if%>
+            <div class="panel-body">
+            {^{if ~initObj('<%:~key%>', <%:~key%>)}}
+              {^{for <%:~key%>}}
+                <%props properties sort="prop.order"%>
+                  <%for prop ~key=key%>
+                    <%include tmpl="#switchTmpl"/%>
+                  <%/for%>
+                <%/props%>
+              {{/for}}
+            {{/if}}
+            </div>
+          </div>
+        ]]>
+        </script>
+        <script id="arrayTmpl" type="text/x-jsrender">
+        <![CDATA[
+          <div class="panel panel-default">
+            <div class="panel-heading accordion-toggle collapsed" data-toggle="collapse" data-target="#<%:~id%>_array_group" aria-expanded="false">
+              <%if title%>
+                <div class="panel-title"><h5 class="panel-title"><%>title%></h5></div>
+              <%else%>
+                <div class="panel-title"><h5 class="panel-title"><%>~key%></h5></div>
+              <%/if%>
+            </div>
+            <div id="<%:~id%>_array_group" class="panel-collapse collapse" aria-expanded="false">
+              <table class="table">
+                <tbody>
+                  {^{if ~initArr('<%:~key%>', <%:~key%>)}}
+                    {^{for <%:~key%>}}
+                      <%for items%>
+                        <%if type=="object"%>
+                          {^{if true ~idx=~idx?~idx+'_'+#getIndex():#getIndex()}}
+                            <tr>
+                              <td class="col-sm-12">
+                                <%props properties sort="prop.order"%>
+                                  <%for prop ~key=key%>
+                                    <%include tmpl="#switchTmpl"/%>
+                                  <%/for%>
+                                <%/props%>
+                                <div class="btn-group btn-group-xs">
+                                  <button type="button" class="btn btn-default up" data-link="class{:#getIndex() <= 0?'btn btn-default up disabled':'btn btn-default up'}"><span class="glyphicon glyphicon-chevron-up" aria-hidden="true"></span></button>
+                                  <button type="button" class="btn btn-default del"><span class="fa fa-trash text-danger" aria-hidden="true"></span></button>
+                                  <button type="button" class="btn btn-default down" data-link="class{:#getIndex() >= #parent.data.length-1?'btn btn-default down disabled':'btn btn-default down'}"><span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span></button>
+                                </div>
+                              </td>
+                            </tr>
+                          {{/if}}
+                        <%/if%>
+                      <%/for%>
+                    {{/for}}
+                    <tr>
+                      <td><button type="button" data-for="<%:~key%>" class="btn btn-default btn-sm text-primary add"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button></td>
+                    </tr>
+                  {{/if}}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ]]>
+        </script>
+        <script id="stringTmpl" type="text/x-jsrender">
+        <![CDATA[
+          <div class="form-group">
+            <%if title%>
+              <label data-link="for{:~idxid(~idx,'<%:~id%>_field_<%:~key%>')}"><%>title%></label>
+            <%/if%>
+            <%if enum%>
+              <select title="<%>desc%>" class="form-control" placeholder="<%>hint%>" data-link="{:<%:~key%>:} id{:~idxid(~idx,'<%:~id%>_field_<%:~key%>')}">
+                <option value=""></option>
+                <%for enum%>
+                  <option value="<%:#data%>"><%>#data%></option>
+                <%/for%>
+              </select>
+            <%else%>
+              <%if format == 'date' || format == 'time' || format == 'password' || format == 'color'%>
+                <input title="<%>desc%>" type="<%>format%>" class="form-control" placeholder="<%>hint%>" data-link="{:<%:~key%>:} id{:~idxid(~idx,'<%:~id%>_field_<%:~key%>')}"/>
+              <%else format == 'long'%>
+                <textarea title="<%>desc%>" class="form-control" placeholder="<%>hint%>" data-link="{:<%:~key%>:} id{:~idxid(~idx,'<%:~id%>_field_<%:~key%>')}"></textarea>
+              <%else%>
+                <input title="<%>desc%>" type="text" class="form-control" placeholder="<%>hint%>" data-link="{:<%:~key%>:} id{:~idxid(~idx,'<%:~id%>_field_<%:~key%>')}"/>
+              <%/if%>
+            <%/if%>
+          </div>
+        ]]>
+        </script>
+        <script id="numberTmpl" type="text/x-jsrender">
+        <![CDATA[
+          <div class="form-group">
+            <%if title%>
+              <label data-link="for{:~idxid(~idx,'<%:~id%>_field_<%:~key%>')}"><%>title%></label>
+            <%/if%>
+            <input title="<%>desc%>" type="number" class="form-control" placeholder="<%>hint%>" data-link="{intToStr:<%:~key%>:strToInt} id{:~idxid(~idx,'<%:~id%>_field_<%:~key%>')}"/>
+          </div>
+        ]]>
+        </script>
+        <script id="booleanTmpl" type="text/x-jsrender">
+        <![CDATA[
+          <div>
+            <%if title%>
+              <label data-link="for{:~idxid(~idx,'<%:~id%>_field_<%:~key%>_group')}"><%>title%></label>
+            <%/if%>
+            <div class="checkbox" data-link="id{:~idxid(~idx,'<%:~id%>_field_<%:~key%>_group')}">
+              <label data-link="for{:~idxid(~idx,'<%:~id%>_field_<%:~key%>')}">
+                <input title="<%>desc%>" type="checkbox" class="styled" data-link="{:<%:~key%>:} id{:~idxid(~idx,'<%:~id%>_field_<%:~key%>')}"/>
+                Yes
+              </label>
+            </div>
+          </div>
+        ]]>
+        </script>
+        <script id="remoteTmpl" type="text/x-jsrender">
+        <![CDATA[
+          <form data-form="true" class="base" autocomplete="off">
+            <fieldset>
+              <%for schema ~key=key?key:''%>
+                <%if type=="object"%>
+                  <%props properties%>
+                    <%if true ~id=~genid() ~grouptitle=(key=='actions')?'Actions':'Events' ~fieldtitle=(key=='actions')?'Action':'Event' ~fieldkey=(key=='actions')?'action':'event'%>
+                      <div class="panel panel-default">
+                        <div class="panel-heading accordion-toggle collapsed" data-toggle="collapse" data-target="#<%:~id%>_remote_group">
+                          <h5 class="panel-title"><%>~grouptitle%></h5>
+                        </div>
+                        <div id="<%:~id%>_remote_group" class="panel-collapse collapse">
+                          <div class="panel-body">
+                            <table class="tableremote">
+                              <thead>
+                                <tr>
+                                  <td></td>
+                                  <td>
+                                    {^{if ~initHid('_$filldown', _$filldown)}}
+                                      <div class="input-group">
+                                        <input class="form-control node" type="text" data-link="_$filldown" placeholder="fill selected"/>
+                                        <span class="input-group-btn">
+                                          <button type="button" class="btn btn-default remotenodecopy <%:~fieldkey%>"><i class="far fa-copy"></i></button>
+                                        </span>
+                                      </div>
+                                    {{/if}}
+                                  </td>
+                                  <td><button type="button" class="btn btn-default remotefill <%:~fieldkey%>"><i class="fas fa-magic"></i></button></td>
+                                </tr>
+                                <tr>
+                                  <th><label><input type="checkbox" class="remoteselectall <%:~fieldkey%>"/> <b>Name</b></label></th>
+                                  <th>Node</th>
+                                  <th><%>~fieldtitle%></th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <%for prop ~key=key%>
+                                  {^{if ~initObj('<%:~key%>', <%:~key%>)}}
+                                    {^{for <%:~key%>}}
+                                      <%props properties%>
+                                        <tr>
+                                          <%for prop ~key=key%>
+                                            {^{if ~initObj('<%:~key%>', <%:~key%>)}}
+                                              {^{for <%:~key%>}}
+                                                <td>
+                                                  <label>
+                                                    {^{if ~initHid('_$checked', _$checked)}}
+                                                      <input type="checkbox" data-link="_$checked"/>
+                                                    {{/if}}
+                                                    <%>title%>
+                                                    {^{if ~initHid('_$status', _$status)}}
+                                                      {^{if _$status == 'Wired'}}
+                                                        <a data-link="href{:_$link}" target="_blank"><span class="binding wired fas fa-link"></span></a>
+                                                      {{/if}}
+                                                    {{/if}}
+                                                  </label>
+                                                </td>
+                                                <td>
+                                                  <div>
+                                                    <input placeholder="node" type="text" class="form-control node" data-link="node"/>
+                                                  </div>
+                                                </td>
+                                                <td>
+                                                  <div>
+                                                    <input placeholder="<%>~fieldkey%>" type="text" class="form-control <%>~fieldkey%>" data-link="<%>~fieldkey%>"/>
+                                                  </div>
+                                                </td>
+                                              {{/for}}
+                                            {{/if}}
+                                          <%/for%>
+                                        </tr>
+                                      <%/props%>
+                                    {{/for}}
+                                  {{/if}}
+                                <%/for%>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    <%/if%>
+                  <%/props%>
+                <%/if%>  
+              <%/for%>
+              <button type="submit" class="btn btn-default" title="Remote">Save</button>
+            </fieldset>
+          </form>
+        ]]>
+        </script>
+        <script id="actsigTmpl" type="text/x-jsrender">
+        <![CDATA[
+          {{for forms}}
+            {{include tmpl="#actsigTmplItem" ~len=#parent.data.length/}}
+          {{/for}}
+          {{props groups}}
+            {{if true ~id=~genid()}}
+              <div class="panel panel-default">
+                <div class="panel-heading accordion-toggle collapsed" data-toggle="collapse" data-target="#{{:~id}}_actsig_group">
+                  <h5 class="panel-title">{{>key}}</h5>
+                </div>
+                <div id="{{:~id}}_actsig_group" class="panel-collapse collapse">
+                  <div class="panel-body">
+                    {{for prop}}
+                      {{include tmpl="#actsigTmplItem" ~len=#parent.data.length/}}
+                    {{/for}}
+                  </div>
+                </div>
+              </div>
+            {{/if}}
+          {{/props}}
+        ]]>
+        </script>
+        <script id="actsigTmplItem" type="text/x-jsrender">
+        <![CDATA[
+          {{if title}}
+            <div class="row">
+              <div class="col-sm-12">
+                <h6>{{>title}}</h6>
+              </div>
+            </div>
+          {{/if}}
+          <div class="row">
+            {{if action}}
+              <div class="col-sm-6">
+                <div {{props action}}
+                  data-{{:key}}='{{:prop}}'
+                {{/props}} data-btnfaicon="running"/>
+              </div>
+            {{/if}}
+            {{if event}}
+              {{if action}}
+              <div class="col-sm-6">
+              {{else}}
+              <div class="col-sm-offset-6 col-sm-6">
+              {{/if}}
+                <div {{props event}}
+                  data-{{:key}}='{{:prop}}'
+                {{/props}} data-btnfaicon="traffic-light" data-disabled="true"/>
+              </div>
+            {{/if}}
+          </div>
+          {{if #getIndex() < ~len-1}}
+            <div class="row">
+              <div class="col-sm-12">
+                <hr/>
+              </div>
+            </div>
+          {{/if}}
+        ]]>
+        </script>
+        <script id="logTmpl" type="text/x-jsrender">
+        <![CDATA[
+          <div class="base">
+            <form>
+              <fieldset>
+                <input class="form-control" type="text" data-link="flt" placeholder="filter"/>
+              </fieldset>
+            </form>
+            <ul>
+              {^{for logs filter=~srcflt mapDepends='flt' srch='alias'}}
+                <li data-link="data-type{:type} class{:'log log_'+alias}">
+                  <span class="logicon"></span>
+                  <span class="logtitle">{^{>alias}}</span><span class="logtimestamp"> - {^{>~nicetime(timestamp)}}</span>
+                  {^{if arg}}
+                    <span class="logarg">{^{>~sanitize(arg, 150)}}</span>
+                  {{/if}}
+                </li>
+              {{/for}}
+            </ul>
+          </div>
+        ]]>
+        </script>
+        <script id="consoleTmpl" type="text/x-jsrender">
+        <![CDATA[
+          <div class="base">
+            <div>
+              {^{for logs}}<div data-link="class{:'consoletype_'+console}"><span class="consoletimestamp">{^{>~nicetime(timestamp,true)}}</span>&nbsp;<span class="consolecomment">{^{>comment}}</span></div>{{/for}}
+              <div><div class="consoleprompt">&gt;</div><div class="consoleinput" contenteditable="true" spellcheck="false"></div></div>
+            </div>
+          </div>
+        ]]>
+        </script>
+        <script id="listTmpl" type="text/x-jsrender">
+        <![CDATA[
+          <div class="base">
+            <form class="form-inline">
+              <fieldset>
+                <div class="form-group">
+                  <input class="form-control" type="text" data-link="flt" placeholder="filter"/>
+                  <select class="form-control" data-link="end">
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="99999">All</option>
+                  </select>
+                </div>
+                <p class="lsttotal">total: {^{>lst.length}}</p>
+              </fieldset>
+            </form>
+            <div class="list-group list-group-basic">
+              {^{for lst filter=~srcflt mapDepends='flt' srch='node' sort='node' end=end}}
+                <a class="list-group-item" data-link="href{:reachable}" target="_blank"><img src="data:image/svg+xml;base64,{{:icon}}"/>&nbsp;{^{:~highlight(node,~root.flt)}}</a>
+              {{/for}}
+            </div>
+          </div>
+        ]]>
+        </script>
+      </body>
+    </html>
+  </xsl:template>
+</xsl:stylesheet>
