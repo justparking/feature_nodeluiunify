@@ -147,6 +147,9 @@
                                 <select class="form-control uipicker goto" type="text"/>
                               </div>
                             </li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="/toolkit.xml" target="_blank">Toolkit</a></li>
+                            <li><a href="/diagnostics.xml" target="_blank">Diagnostics</a></li>
                           </ul>
                         </li>
                       </ul>
@@ -461,7 +464,7 @@
                                 <tr>
                                   <td></td>
                                   <td>
-                                    {^{if ~initHid('_$filldown', _$filldown)}}
+                                    {^{if ~initHid('_$filldown')}}
                                       <div class="input-group">
                                         <input class="form-control node" type="text" data-link="_$filldown" placeholder="fill selected"/>
                                         <span class="input-group-btn">
@@ -489,11 +492,11 @@
                                               {^{for <%:~key%>}}
                                                 <td>
                                                   <label>
-                                                    {^{if ~initHid('_$checked', _$checked)}}
+                                                    {^{if ~initHid('_$checked')}}
                                                       <input type="checkbox" data-link="_$checked"/>
                                                     {{/if}}
                                                     <%>title%>
-                                                    {^{if ~initHid('_$status', _$status)}}
+                                                    {^{if ~initHid('_$status')}}
                                                       {^{if _$status == 'Wired'}}
                                                         <a data-link="href{:_$link}" target="_blank"><span class="binding wired fas fa-link"></span></a>
                                                       {{/if}}
@@ -625,6 +628,20 @@
           </div>
         ]]>
         </script>
+        <script id="serverlogTmpl" type="text/x-jsrender">
+        <![CDATA[
+          <div class="base">
+            <div>
+              {^{for logs}}
+                <div data-link="class{:'consoletype_'+level}"><span class="consoletimestamp">{^{>~nicetime(timestamp,true)}}</span>&nbsp;<span class="consolecomment">{^{>message}}</span></div>
+                {{if error}}
+                  <div data-link="class{:'consoletype_'+level+ ' consoledetail'}"><span class="consolecomment">{^{>error}}</span></div>
+                {{/if}}
+              {{/for}}
+            </div>
+          </div>
+        ]]>
+        </script>
         <script id="listTmpl" type="text/x-jsrender">
         <![CDATA[
           <div class="base">
@@ -648,6 +665,64 @@
                 <a class="list-group-item" data-link="href{:reachable}" target="_blank"><img src="data:image/svg+xml;base64,{{:icon}}"/>&nbsp;{^{:~highlight(node,~root.flt)}}</a>
               {{/for}}
             </div>
+          </div>
+        ]]>
+        </script>
+        <script id="diagsTmpl" type="text/x-jsrender">
+        <![CDATA[
+          <div class="base">
+            <table class="table">
+              <tbody>
+                <tr>
+                  <th scope="row">Build</th>
+                  <td>Open-source build <a href="/build.json"><strong id="build">{{>build.version}}</strong></a> by <a href="http://museumvictoria.com.au">Museum Victoria</a> &amp; <a href="http://automatic.com.au">Automatic Pty Ltd</a></td>
+                </tr>
+                <tr>
+                  <th scope="row">Serving from</th>
+                  <td>{{>hostname}}</td>
+                </tr>
+                <tr>
+                  <th scope="row">Advertising</th>
+                  <td>
+                    {{for httpAddresses}}
+                      {{>#data}}{{if #getIndex() < #parent.data.length -1}}<br/>{{/if}}
+                    {{/for}}
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row">Uptime</th>
+                  <td>{{>~fromtime(startTime)}}<br/>started ({{>~nicetime(startTime)}})</td>
+                </tr>
+                <tr>
+                  <th scope="row">Host path</th>
+                  <td>{{>hostPath}}</td>
+                </tr>
+                <tr>
+                  <th scope="row">Nodes root</th>
+                  <td>{{>nodesRoot}}</td>
+                </tr>
+                <tr>
+                  <th scope="row">Hosting rule</th>
+                  <td>{{>hostingRule}}</td>
+                </tr>
+                <tr>
+                  <th scope="row">Announcing agent</th>
+                  <td>{{>agent}}</td>
+                </tr>
+                <tr>
+                  <th scope="row">Build server</th>
+                  <td>{{>build.host}}</td>
+                </tr>
+                <tr>
+                  <th scope="row">Build date</th>
+                  <td>{{>~nicetime(build.date)}}</td>
+                </tr>
+                <tr>
+                  <th scope="row">Commit</th>
+                  <td><a href="#" target="_blank" data-link="href{:'https://github.com/museumvictoria/nodel/commit/'+build.id}">{{>build.id}}</a></td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         ]]>
         </script>

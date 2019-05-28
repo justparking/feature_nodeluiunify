@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="index.xsl"?>
+<pages theme="default" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd">
+  <header>
+    <nodel type="hosticon"/>
+  </header>
+  <page title='Diagnostics'>
+    <row>
+      <column sm="12">
+        <title>Diagnostics</title>
+        <nodel type="diagnostics"/>
+      </column>
+    </row>
+    <row>
+      <column sm="12">
+        <title>Log</title>
+        <nodel type="serverlog"/>
+      </column>
+    </row>
+    <row>
+      <column sm="12">
+        <title>Charts</title>
+        <nodel type="charts"/>
+      </column>
+    </row>
+  </page>
+</pages>

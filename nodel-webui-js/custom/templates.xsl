@@ -325,7 +325,7 @@
           </xsl:attribute>
         </xsl:if>
       </xsl:if>
-      <xsl:apply-templates select="button"/>
+      <xsl:apply-templates select="button|switch|partialswitch"/>
     </div>
   </xsl:template>
   <!-- buttongroup -->
@@ -336,10 +336,24 @@
         <xsl:if test="@lib='fa'">
           <xsl:choose>
             <xsl:when test="@style">
-              <span class="{@style} fa-{@type}"></span>
+              <xsl:choose>
+                <xsl:when test="@size">
+                  <span class="{@style} fa-{@type} fa-{@size}x"></span>
+                </xsl:when>
+                <xsl:otherwise>
+                  <span class="{@style} fa-{@type}"></span>
+                </xsl:otherwise>
+              </xsl:choose>
             </xsl:when>
             <xsl:otherwise>
-              <span class="fas fa-{@type}"></span>
+              <xsl:choose>
+                <xsl:when test="@size">
+                  <span class="fas fa-{@type} fa-{@size}x"></span>
+                </xsl:when>
+                <xsl:otherwise>
+                  <span class="fas fa-{@type}"></span>
+                </xsl:otherwise>
+              </xsl:choose>
             </xsl:otherwise>
           </xsl:choose>
         </xsl:if>
@@ -1019,7 +1033,7 @@
   <!-- group -->
   <!-- nodel -->
   <xsl:template match="nodel">
-    <xsl:if test="@type='actsig' or @type='log' or @type='console' or @type='params' or @type='remote' or @type='list'">
+    <xsl:if test="@type='actsig' or @type='log' or @type='serverlog' or @type='charts' or @type='console' or @type='params' or @type='remote' or @type='list' or @type='diagnostics'">
       <div data-nodel="{@type}" class="nodel-{@type}"></div>
     </xsl:if>
     <xsl:if test="@type='add'">
@@ -1134,6 +1148,19 @@
           <div class="row">
             <div class="col-sm-12">
               <div class="editor">
+                <textarea></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </xsl:if>
+    <xsl:if test="@type='toolkit'">
+      <div data-nodel="{@type}" class="nodel-{@type}">
+        <div class="base">
+          <div class="row">
+            <div class="col-sm-12">
+              <div class="toolkit">
                 <textarea></textarea>
               </div>
             </div>

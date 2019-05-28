@@ -1,0 +1,49 @@
+{
+  "name": "bootskel",
+  "version": "0.0.1",
+  "description": "Bootstrap skeleton",
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^5.8.2",
+    "array.findindex": "^1.0.4",
+    "bootstrap": "^3.4.1",
+    "cm-resize": "^1.0.1",
+    "codemirror": "^5.47.0",
+    "fuzzyset.js": "0.0.8",
+    "google-charts": "^2.0.0",
+    "gsap": "^2.1.3",
+    "identicon.js": "^2.3.3",
+    "jquery": "^3.4.1",
+    "jquery.scrollbar": "^0.2.11",
+    "jsviews": "^1.0.3",
+    "moment": "^2.24.0",
+    "pagedown": "^1.1.0",
+    "xregexp": "^3.2.0",
+    "xxhashjs": "^0.2.2"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.2",
+    "grunt-concat-css": "^0.3.1",
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-copy": "^0.8.2",
+    "grunt-contrib-less": "~0.8.2",
+    "grunt-contrib-uglify": "^2.0.0",
+    "grunt-contrib-watch": "~0.5.3",
+    "grunt-npm-command": "^0.1.2",
+    "grunt-prettify": "^0.4.0",
+    "grunt-replace": "^1.0.1",
+    "grunt-run": "^0.8.1",
+    "grunt-sftp-deploy": "^0.2.5",
+    "grunt-text-replace": "^0.4.0",
+    "grunt-twbs": "0.0.5",
+    "grunt-xsltproc": "^0.6.1",
+    "jshint": "^2.10.2",
+    "mkdirp": "^0.5.1",
+    "uglify-js": "^3.5.15",
+    "uglifycss": "0.0.27"
+  },
+  "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/museumsvictoria/nodel.git"
+  }
+}

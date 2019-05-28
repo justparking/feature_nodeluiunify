@@ -7,12 +7,6 @@
   </header>
   <page title='Activity'>
     <row>
-      <column sm="12">
-        <title>Console</title>
-        <nodel type="console"/>
-      </column>
-    </row>
-    <row>
       <column sm="8" push="4">
         <title>Actions &amp; Signals</title>
         <nodel type="actsig"/>
@@ -24,6 +18,12 @@
     </row>
   </page>
   <page title='Config'>
+     <row>
+      <column sm="12">
+        <title>Console</title>
+        <nodel type="console"/>
+      </column>
+    </row>
     <row>
       <column sm="12">
         <title>Editor</title>

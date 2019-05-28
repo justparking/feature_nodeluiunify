@@ -44,6 +44,9 @@ $.views.helpers({
     if(long) return moment(value).format('MM-DD HH:mm:ss.SS');
     else return moment(value).format('Do MMM, h:mm a');
   },
+  fromtime: function(value){
+    return moment(value).from(moment(), true);
+  },
   srcflt: function(item, i, items) {
     if(this.view.data.flt) {
       return item[this.props.srch].search(new RegExp(this.view.data.flt, "ig")) !== -1;
@@ -53,8 +56,8 @@ $.views.helpers({
   encodr: function(value){
     return encodr(value);
   },
-  initHid: function (id, value) {
-    if(!_.isPlainObject(value)) Object.defineProperty(this.data, id, {enumerable:false, writable:true});
+  initHid: function (id) {
+    if(!(id in this.data)) Object.defineProperty(this.data, id, {enumerable:false, writable:true});
     return true;
   },
   highlight: function(value, sub) {
@@ -303,6 +306,8 @@ $(function() {
     $.when(createDynamicElements().then(function(){
       convertNames();
       updateConsoleForm();
+      updateLogForm();
+      updateCharts();
       updateNodelist().then(function(){
         setEvents();
         updateLogs();
@@ -314,14 +319,9 @@ $(function() {
         // hide sects by default
         $(".sect").hide();
         // init editor
-        $('.nodel-editor textarea').each(function() {
-          var editor = CodeMirror.fromTextArea(this, {
-            lineNumbers: true,
-            autoRefresh: true
-          });
-          cmResize(editor, {resizableWidth: false})
-          $(this).data('editor', editor);
-        });
+        initEditor();
+        // init toolkit
+        initToolkit();
       });
       fillPicker();
       checkReload();
@@ -330,11 +330,40 @@ $(function() {
     $.when(createDynamicElements().then(function(){
       updateNodelist().then(function(){
         setEvents();
+        updateLogForm();
+        updateCharts();
+        initToolkit();
         $('*[data-nav]').first().trigger('click');
       });
     }));
   }
 });
+
+var initEditor = function(){
+  $('.nodel-editor textarea').each(function() {
+    var editor = CodeMirror.fromTextArea(this, {
+      lineNumbers: true,
+      matchBrackets: true,
+      autoRefresh: true
+    });
+    cmResize(editor, {resizableWidth: false})
+    $(this).data('editor', editor);
+    $('.script_default').trigger('click');
+  });
+}
+
+var initToolkit = function(){
+  $('.nodel-toolkit textarea').each(function() {
+    var editor = CodeMirror.fromTextArea(this, {
+      lineNumbers: true,
+      matchBrackets: true,
+      autoRefresh: true
+    });
+    cmResize(editor, {resizableWidth: false})
+    editor.setOption('readOnly', 'nocursor');
+    editor.setOption('mode', 'python');
+  });
+}
 
 var createDynamicElements = function(){
   var p = [];
@@ -408,7 +437,7 @@ var createDynamicElements = function(){
           $(ele).html('<h6>None</h6>');
           d.resolve();
         }
-      });
+      }).fail(function(){d.resolve();});
     } else if($(ele).data('nodel') == 'remote'){
       $.getJSON('http://'+host+'/REST/nodes/'+encodeURIComponent(node)+'/remote/schema',"", function(data) {
         if(!_.isEmpty(data)){
@@ -422,12 +451,29 @@ var createDynamicElements = function(){
           $(ele).html('<h6>None</h6>');
           d.resolve();
         }
-      });
+      }).fail(function(){d.resolve();});
+    } else if($(ele).data('nodel') == 'toolkit'){
+      var ele = this;
+      $.get('http://' + host + '/REST/toolkit', function(data) {
+        $(ele).find('textarea').val(data['script']);
+        d.resolve();
+      }).fail(function(){d.resolve();});
+    } else if($(ele).data('nodel') == 'diagnostics'){
+      $.getJSON('http://'+host+'/REST/diagnostics',"", function(data) {
+        $.getJSON('http://'+host+'/build.json',"", function(build) {
+          $.extend(data, {'build':build});
+          $.templates("#diagsTmpl").link(ele, data);
+          d.resolve();
+        }).fail(function(){d.resolve();});
+      }).fail(function(){d.resolve();});
     } else if($(ele).data('nodel') == 'log'){ 
       $.templates("#logTmpl").link(ele, {'logs':[],'flt':''});
       d.resolve();
     } else if($(ele).data('nodel') == 'console'){
       $.templates("#consoleTmpl").link(ele, {'logs':[]});
+      d.resolve();
+    } else if($(ele).data('nodel') == 'serverlog'){
+      $.templates("#serverlogTmpl").link(ele, {'logs':[]});
       d.resolve();
     } else if($(ele).data('nodel') == 'list'){
       $.templates("#listTmpl").link(ele, nodeList);
@@ -537,11 +583,16 @@ var makeTemplate = function(ele, schema, tmpls){
   //console.log(generatedTemplate);
   $.views.settings.delimiters("{{", "}}");
   var tmpl = $.templates(generatedTemplate);
-  if(!_.isUndefined($(ele).data('source'))){
+  if(!(_.isUndefined($(ele).data('source'))) && ($(ele).data('source').charAt(0) != '/')){
     $.getJSON('http://'+host+'/REST/nodes/'+encodeURIComponent(node)+'/'+$(ele).data('source'), "", function(data) {
       tmpl.link(ele, data);
       d.resolve();
     });
+  } else if(!(_.isUndefined($(ele).data('source'))) && ($(ele).data('source').charAt(0) == '/')){
+    $.getJSON('http://'+host+'/REST'+$(ele).data('source'), "", function(data) {
+      tmpl.link(ele, data);
+      d.resolve();
+    }); 
   } else {
     tmpl.link(ele, {});
     d.resolve();
@@ -830,6 +881,8 @@ var setEvents = function(){
       }
     } else if((charCode == 40) || (charCode == 38)) {
       e.preventDefault();
+    } else if(charCode == 27) {
+      $(this).siblings('div.autocomplete').remove();
     }
   });
   $('body').on('keyup', 'input.node', function(e) {
@@ -860,7 +913,7 @@ var setEvents = function(){
           $(ele).find('li.active').trigger('mousedown');
         }
       }
-    } else if (charCode != 9) {
+    } else if ((charCode != 9) && (charCode != 27)) {
       if(e.ctrlKey || e.altKey) return true;
       var srchstr = $(this).val();
       var data = $.grep(nodeList.lst, function(v) {
@@ -908,7 +961,7 @@ var setEvents = function(){
           $(ele).find('li.active').trigger('mousedown');
         }
       }
-    } else if (charCode != 9) {
+    } else if ((charCode != 9) && (charCode != 27)) {
       if(e.ctrlKey || e.altKey) return true;
       var srchstr = $(this).val();
       var ele = this;
@@ -1021,50 +1074,52 @@ var setEvents = function(){
     var ele = $(this).closest('.base');
     $(ele).find('#script_save, #script_delete').prop("disabled", true);
     var editor = $(ele).find('textarea').data('editor');
-    editor.setOption('readOnly', 'nocursor');
-    var path = $(ele).find('.picker').val();
-    $(ele).find('textarea').data('path', path);
-    $.get('http://' + host + '/REST/nodes/' + encodeURIComponent(node) + '/files/contents?path=' +encodeURIComponent(path), function (data) {
-      switch(path.split('.').pop()){
-        //'sh'
-        case 'js':
-        case 'json':
-          editor.setOption("mode", "javascript");
-          break;
-        case 'xml':
-        case 'xsl':
-        case 'html':
-        case 'htm':
-          editor.setOption("mode", "xml");
-          break;
-        case 'css':
-          editor.setOption("mode", "css");
-          break;
-        case 'java':
-          editor.setOption("mode", "clike");
-          break;
-        case 'groovy':
-          editor.setOption("mode", "groovy");
-          break;
-        case 'sql':
-          editor.setOption("mode", "sql");
-          break;
-        case 'sh':
-          editor.setOption("mode", "shell");
-          break;
-        case 'py':
-          editor.setOption("mode", "python");
-          break;
-        default:
-          editor.setOption("mode", "txt");
-      }
-      editor.getDoc().setValue(data);
-      editor.setOption('readOnly', false);
-    }).fail(function(e){
-      alert("Error loading file: "+path, "danger");
-    }).always(function(){
-      $(ele).find('.script_save, .script_delete').prop("disabled", false);
-    });
+    if(editor) {
+      editor.setOption('readOnly', 'nocursor');
+      var path = $(ele).find('.picker').val();
+      $(ele).find('textarea').data('path', path);
+      $.get('http://' + host + '/REST/nodes/' + encodeURIComponent(node) + '/files/contents?path=' +encodeURIComponent(path), function (data) {
+        switch(path.split('.').pop()){
+          //'sh'
+          case 'js':
+          case 'json':
+            editor.setOption("mode", "javascript");
+            break;
+          case 'xml':
+          case 'xsl':
+          case 'html':
+          case 'htm':
+            editor.setOption("mode", "xml");
+            break;
+          case 'css':
+            editor.setOption("mode", "css");
+            break;
+          case 'java':
+            editor.setOption("mode", "clike");
+            break;
+          case 'groovy':
+            editor.setOption("mode", "groovy");
+            break;
+          case 'sql':
+            editor.setOption("mode", "sql");
+            break;
+          case 'sh':
+            editor.setOption("mode", "shell");
+            break;
+          case 'py':
+            editor.setOption("mode", "python");
+            break;
+          default:
+            editor.setOption("mode", "txt");
+        }
+        editor.getDoc().setValue(data);
+        editor.setOption('readOnly', false);
+      }).fail(function(e){
+        alert("Error loading file: "+path, "danger");
+      }).always(function(){
+        $(ele).find('.script_save, .script_delete').prop("disabled", false);
+      });
+    }
   });
   $('body').on('click', '.script_save', function() {
     var ele = $(this).closest('.base');
@@ -1272,6 +1327,50 @@ var setEvents = function(){
       $('.panel.panel-default').removeClass('panel-primary');
     };
   });
+  $('body').on('keydown', function(e) {
+    var charCode = e.charCode || e.keyCode;
+    if((charCode == 40) || (charCode == 38) || (charCode == 13) || (charCode == 27)) {
+      e.preventDefault();
+      var ele = $(this).find('div.nodel-list');
+      if(ele.length !== 0){
+        if((charCode == 40) || (charCode == 38)) {
+          var sub = $(ele).find('a.list-group-item.active');
+          var nxt;
+          if($(sub).length != 0) {
+            if (charCode == 40) {
+              nxt = $(sub).nextAll('a.list-group-item:first');
+              if($(nxt).length !== 0){
+                $(sub).removeClass('active');
+                $(nxt).addClass('active');
+              }
+            } else {
+              nxt = $(sub).prevAll('a.list-group-item:first');
+              if($(nxt).length !== 0){
+                $(sub).removeClass('active');
+                $(nxt).addClass('active');
+              }
+            }
+            if($(nxt).length !== 0) {
+              var difft = $(nxt).get(0).getBoundingClientRect().top - parseFloat($('body').css('padding-top')) - 20;
+              if(difft < 0) {
+                $(window).scrollTop($(window).scrollTop() + difft);
+              }
+              var diffb = $(nxt).get(0).getBoundingClientRect().top - $(window).height() + $(nxt).outerHeight() + parseFloat($('body').css('padding-bottom')) + 20;
+              if(diffb > 0) {
+                $(window).scrollTop($(window).scrollTop() + diffb);
+              }
+            }
+          } else {
+            $(ele).find("a.list-group-item").first().addClass('active');
+          }
+        } else if (charCode == 13) {
+          $(ele).find('a.list-group-item.active').removeClass('active').get(0).click();
+        } else {
+          $(ele).find('a.list-group-item.active').removeClass('active');
+        }
+      }
+    }
+  });
 };
 
 var getAction = function(ele){
@@ -1383,37 +1482,159 @@ var fillPicker = function() {
 
 // function to update the console
 var updateConsoleForm = function(){
-  if(!_.isUndefined($.data(this, 'timer'))) clearTimeout($.data(this, 'timer'));
-  if(!_.isUndefined($.data(this, 'req'))) $.data(this, 'req').abort();
-  var url;
-  if(typeof $('body').data('nodel-console-seq') === "undefined") url = 'http://'+host+'/REST/nodes/'+encodeURIComponent(node)+'/console?from=-1&max=200';
-  else url = 'http://'+host+'/REST/nodes/'+encodeURIComponent(node)+'/console?from='+$('body').data('nodel-console-seq')+'&max=9999';
-  var req = $.getJSON(url, function(data) {
-    if(!_.isEmpty(data)){
-      data.reverse();
-      if (typeof $('body').data('nodel-console-seq') === "undefined") {
-        if(data[0] === undefined) $('body').data('nodel-console-seq', 0);
-        else $('body').data('nodel-console-seq', data[0].seq);
-      }
-      var eles = $(".nodel-console");
-      var seq = 0;
-      $.each(eles, function (i, ele) {
-        if ($(ele)[0].scrollHeight - $(ele)[0].scrollTop <= $(ele)[0].clientHeight + 1) var yesscroll = true;
-        $.each(data, function(key, value) {
-          seq = value.seq;
-          var data = $.view($(ele).find('.base')).data['logs'];
-          $.observable(data).insert(value);
-          if(data.length > 200) $.observable(data).remove(0);
+  if(typeof $('body').data('nodel-console') == 'undefined'){
+    if($(".nodel-console").length) $('body').data('nodel-console', true);
+  } 
+  if($('body').data('nodel-console')){
+    if(!_.isUndefined($('body').data('nodel-console-timer'))) clearTimeout($('body').data('nodel-console-timer'));
+    if(!_.isUndefined($('body').data('nodel-console-req'))) $('body').data('nodel-console-req').abort();
+    var url;
+    if(typeof $('body').data('nodel-console-seq') === "undefined") url = 'http://'+host+'/REST/nodes/'+encodeURIComponent(node)+'/console?from=-1&max=200';
+    else url = 'http://'+host+'/REST/nodes/'+encodeURIComponent(node)+'/console?from='+$('body').data('nodel-console-seq')+'&max=9999';
+    var req = $.getJSON(url, function(data) {
+      if(!_.isEmpty(data)){
+        data.reverse();
+        if (typeof $('body').data('nodel-console-seq') === "undefined") {
+          if(data[0] === undefined) $('body').data('nodel-console-seq', 0);
+          else $('body').data('nodel-console-seq', data[0].seq);
+        }
+        var eles = $(".nodel-console");
+        var seq = 0;
+        $.each(eles, function (i, ele) {
+          if ($(ele)[0].scrollHeight - $(ele)[0].scrollTop <= $(ele)[0].clientHeight + 1) var yesscroll = true;
+          $.each(data, function(key, value) {
+            seq = value.seq;
+            var data = $.view($(ele).find('.base')).data['logs'];
+            $.observable(data).insert(value);
+            if(data.length > 200) $.observable(data).remove(0);
+          });
+          if(yesscroll) $(ele).scrollTop($(ele)[0].scrollHeight);
         });
-        if(yesscroll) $(ele).scrollTop($(ele)[0].scrollHeight);
-      });
-      $('body').data('nodel-console-seq', seq+1);
-    }
-  }).always(function() {
-    $.data(this, 'timer', setTimeout(function() { updateConsoleForm(); }, 1000));
-  });
-  $.data(this, 'req', req);
+        $('body').data('nodel-console-seq', seq+1);
+      }
+    }).always(function() {
+      $('body').data('nodel-console-timer', setTimeout(function() { updateConsoleForm(); }, 1000));
+    });
+    $('body').data('nodel-console-req', req);
+  }
 };
+
+// function to update the console
+var updateLogForm = function(){
+  if(typeof $('body').data('nodel-serverlog') == 'undefined'){
+    if($(".nodel-serverlog").length) $('body').data('nodel-serverlog', true);
+  } 
+  if($('body').data('nodel-serverlog')){
+    if(!_.isUndefined($('body').data('nodel-serverlog-timer'))) clearTimeout($('body').data('nodel-serverlog-timer'));
+    if(!_.isUndefined($('body').data('nodel-serverlog-req'))) $('body').data('nodel-serverlog-req').abort();
+    var url;
+    if(typeof $('body').data('nodel-serverlog-seq') === "undefined") url = 'http://'+host+'/REST/logs?from=-1&max=200';
+    else url = 'http://'+host+'/REST/logs?from='+$('body').data('nodel-serverlog-seq')+'&max=9999';
+    var req = $.getJSON(url, function(data) {
+      if(!_.isEmpty(data)){
+        data.reverse();
+        if (typeof $('body').data('nodel-serverlog-seq') === "undefined") {
+          if(data[0] === undefined) $('body').data('nodel-serverlog-seq', 0);
+          else $('body').data('nodel-serverlog-seq', data[0].seq);
+        }
+        var eles = $(".nodel-serverlog");
+        var seq = 0;
+        $.each(eles, function (i, ele) {
+          if ($(ele)[0].scrollHeight - $(ele)[0].scrollTop <= $(ele)[0].clientHeight + 1) var yesscroll = true;
+          $.each(data, function(key, value) {
+            seq = value.seq;
+            var data = $.view($(ele).find('.base')).data['logs'];
+            $.observable(data).insert(value);
+            if(data.length > 200) $.observable(data).remove(0);
+          });
+          if(yesscroll) $(ele).scrollTop($(ele)[0].scrollHeight);
+        });
+        $('body').data('nodel-serverlog-seq', seq+1);
+      }
+    }).always(function() {
+      $('body').data('nodel-serverlog-timer', setTimeout(function() { updateLogForm(); }, 1000));
+    });
+    $('body').data('nodel-serverlog-req', req);
+  }
+};
+
+var updateCharts = function(){
+  if(typeof $('body').data('nodel-charts') == 'undefined'){
+    if($(".nodel-charts").length) {
+      $('body').data('nodel-charts', false);
+      googleCharts.GoogleCharts.load(updateCharts);
+    }
+  } else if(!$('body').data('nodel-charts') && google){
+    google.setOnLoadCallback(updateCharts);
+    $('body').data('nodel-charts', true);
+    $('body').data('nodel-charts-prepared',{});
+  } else if($('body').data('nodel-charts')){
+    $.getJSON('/REST/diagnostics/measurements', function(rawMeasurements) {
+      rawMeasurements.sort(function(x, y) {
+        return x.name.localeCompare(y.name);
+      });
+      rawMeasurements.forEach(function(measurement, i, a) {
+        try {
+          //drawChart(measurement.values, measurement.isRate, measurement.name);
+          if (measurement.isRate) scale = 10;
+          else scale = 1;
+          var chartData = new google.visualization.DataTable();
+          chartData.addColumn('string', measurement.name);
+          chartData.addColumn('number', measurement.name);
+          measurement.values.forEach(function(element, index, array) {
+            chartData.addRow(['', element/scale]);
+          });
+          var parts = measurement.name.split('.');
+          var category, subcategory;
+          if (parts.length == 2) {
+              category = parts[0];
+              subcategory = parts[1];
+          } else {
+              category = 'general';
+              subcategory = measurement.name;
+          }
+          re = /[^a-zA-Z0-9]/g;
+          categoryForDiv = category.replace(re, '_');
+          subcategoryForDiv = subcategory.replace(re, '_');
+          nameForDiv = measurement.name.replace(re, '_');      
+          var categoryDiv = $('#' + categoryForDiv);
+          if (categoryDiv.length == 0) {
+            $('.nodel-charts').append('<div><h6>' + category + '</h6><hr/><div class="col-sm-12"><div class="row" id="'+categoryForDiv+'"></div></div></div>');
+            categoryDiv = $('#' + categoryForDiv);
+          }      
+          var chartDiv = $('#' + nameForDiv);
+          var chart;
+          if (chartDiv.length == 0) {
+            // console.log('Preparing new ' + nameForDiv);
+            chartDiv = categoryDiv.append('<div id="' + nameForDiv + '" class="col-sm-4 chart-min"></div>');    
+            chart = {
+              chart : new google.visualization.LineChart(document.getElementById(nameForDiv)),
+              options : {
+                title : subcategory,
+                vAxis : {
+                  minValue : 0
+                },
+                legend : {
+                  position : 'none'
+                }
+              }
+            };
+            var prepared = {};
+            prepared[measurement.name] = chart;
+            $.extend($('body').data('nodel-charts-prepared'), prepared);
+          } else {
+            chart = $('body').data('nodel-charts-prepared')[measurement.name];
+          }
+          chart.chart.draw(chartData, chart.options);
+        } catch (err) {
+          throw ('draw chart failed related to ' + measurement.name + ': ' + err);
+        }
+      });
+    }).always(function(){
+      $('body').data('nodel-charts-timer', setTimeout(function() { updateCharts(); }, 10000));
+    });
+  }
+}
 
 var updateLogs = function(){
   if(!("WebSocket" in window)){
@@ -1602,20 +1823,20 @@ var parseLog = function(log, ani){
                 var arg = log.arg.toLowerCase().replace(/[^a-z]+/gi, "");
                 switch (arg) {
                   case "on":
-                    $(ele).children('[data-arg="On"]').removeClass('active').addClass($(ele).data('class-on')).removeClass('btn-default').removeClass('btn-warning');
-                    $(ele).children('[data-arg="Off"]').addClass('active').addClass('btn-default').removeClass($(ele).data('class-off')).removeClass('btn-warning');
+                    $(ele).children('[data-arg="On"]').addClass($(ele).data('class-on')).removeClass('btn-default').removeClass('btn-warning');
+                    $(ele).children('[data-arg="Off"]').addClass('btn-default').removeClass($(ele).data('class-off')).removeClass('btn-warning');
                     break
                   case "off":
-                    $(ele).children('[data-arg="Off"]').removeClass('active').addClass($(ele).data('class-off')).removeClass('btn-default').removeClass('btn-warning');
-                    $(ele).children('[data-arg="On"]').addClass('active').addClass('btn-default').removeClass($(ele).data('class-on')).removeClass('btn-warning');
+                    $(ele).children('[data-arg="Off"]').addClass($(ele).data('class-off')).removeClass('btn-default').removeClass('btn-warning');
+                    $(ele).children('[data-arg="On"]').addClass('btn-default').removeClass($(ele).data('class-on')).removeClass('btn-warning');
                     break;
                   case "partiallyon":
-                    $(ele).children('[data-arg="On"]').removeClass('active').addClass('btn-warning').removeClass('btn-default').removeClass($(ele).data('class-on'));
-                    $(ele).children('[data-arg="Off"]').addClass('active').addClass('btn-default').removeClass($(ele).data('class-off')).removeClass('btn-warning');
+                    $(ele).children('[data-arg="On"]').addClass('btn-warning').removeClass('btn-default').removeClass($(ele).data('class-on'));
+                    $(ele).children('[data-arg="Off"]').addClass('btn-default').removeClass($(ele).data('class-off')).removeClass('btn-warning');
                     break
                   case "partiallyoff":
-                    $(ele).children('[data-arg="Off"]').removeClass('active').addClass('btn-warning').removeClass('btn-default').removeClass($(ele).data('class-off'));
-                    $(ele).children('[data-arg="On"]').addClass('active').addClass('btn-default').removeClass($(ele).data('class-on')).removeClass('btn-warning');
+                    $(ele).children('[data-arg="Off"]').addClass('btn-warning').removeClass('btn-default').removeClass($(ele).data('class-off'));
+                    $(ele).children('[data-arg="On"]').addClass('btn-default').removeClass($(ele).data('class-on')).removeClass('btn-warning');
                     break;
                 }
               } else if ($(ele).hasClass('label-pbadge')) {
@@ -1666,8 +1887,8 @@ var parseLog = function(log, ani){
                   $(ele).children('[data-arg=true]').addClass('btn-default').removeClass($(ele).data('class-on'));                  
                 }
               } else if($(ele).is("a.btn")) {
-                if (log.arg) $(ele).addClass($(ele).data('class-on')).addClass('active').removeClass('btn-default');
-                else $(ele).addClass('btn-default').removeClass('active').removeClass($(ele).data('class-on'));
+                if (log.arg) $(ele).addClass($(ele).data('class-on')).removeClass('btn-default');
+                else $(ele).addClass('btn-default').removeClass($(ele).data('class-on'));
               } else if($(ele).is("input[type='checkbox'")) {
                 $(ele).prop('checked',log.arg);
               } else $(ele).val(log.arg);
@@ -1771,16 +1992,16 @@ var parseLog = function(log, ani){
     if(log.type == "eventBinding"){
       var eles = $(".nodel-remote");
       var alias = encodr(log.alias);
-      $.each(eles, function () {
-        var data = $.view($(this)).data;
+      $.each(eles, function(i, ele) {
+        var data = $.view($(ele).find('.base')).data;
         $.observable(data.events[alias]).setProperty('_$status', log.arg);
         linkToNode(data.events[alias].node, 'events', alias);
       });
     } else if(log.type == "actionBinding"){
       var eles = $(".nodel-remote");
       var alias = encodr(log.alias);
-      $.each(eles, function () {
-        var data = $.view($(this)).data;
+      $.each(eles, function(i, ele) {
+        var data = $.view($(ele).find('.base')).data;
         $.observable(data.actions[alias]).setProperty('_$status', log.arg);
         linkToNode(data.actions[alias].node, 'actions', alias);
       });
