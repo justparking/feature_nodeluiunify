@@ -16,13 +16,13 @@ module.exports = function(grunt) {
       dark: {
         options: {
           bootstrap: './node_modules/bootstrap',
-          less: './custom/dark/'
+          less: './src/dark/'
         }
       },
       light: {
         options: {
           bootstrap: './node_modules/bootstrap',
-          less: './custom/light/'
+          less: './src/light/'
         }
       }
     },
@@ -30,12 +30,12 @@ module.exports = function(grunt) {
       updatetheme: {
         files: [
           {
-            src: 'custom/theme.less',
-            dest: 'custom/light/theme.less'
+            src: 'src/theme.less',
+            dest: 'src/light/theme.less'
           },
           {
-            src: 'custom/theme.less',
-            dest: 'custom/dark/theme.less'
+            src: 'src/theme.less',
+            dest: 'src/dark/theme.less'
           }
         ]
       },
@@ -45,7 +45,7 @@ module.exports = function(grunt) {
             expand: true,
             cwd: './node_modules/@fortawesome/fontawesome-free/webfonts/',
             src: '**',
-            dest: 'build/fonts/',
+            dest: 'build/grunt/fonts/',
             flatten: true, 
             filter: 'isFile'
           },
@@ -53,77 +53,77 @@ module.exports = function(grunt) {
             expand: true,
             cwd: './node_modules/bootstrap/dist/fonts/',
             src: '**',
-            dest: 'build/fonts/',
+            dest: 'build/grunt/fonts/',
             flatten: true, 
             filter: 'isFile'
           },
           {
-            src: 'custom/main.css',
-            dest: 'build/css/main-sample.css'
+            src: 'src/main.css',
+            dest: 'build/grunt/css/main-sample.css'
           },
           {
-            src: 'custom/main.js',
-            dest: 'build/js/main.js'
+            src: 'src/main.js',
+            dest: 'build/grunt/js/main.js'
           },
           {
-            src: 'custom/index.xml',
-            dest: 'build/index-sample.xml'
+            src: 'src/index.xml',
+            dest: 'build/grunt/index-sample.xml'
           },
           {
-            src: 'custom/index.xsd',
-            dest: 'build/index.xsd'
+            src: 'src/index.xsd',
+            dest: 'build/grunt/index.xsd'
           },
           {
-            src: 'custom/index.xsl',
-            dest: 'build/index.xsl'
+            src: 'src/index.xsl',
+            dest: 'build/grunt/index.xsl'
           },
           {
-            src: 'custom/index.htm',
-            dest: 'build/index.htm'
+            src: 'src/index.htm',
+            dest: 'build/grunt/index.htm'
           },
           {
-            src: 'custom/index.smil',
-            dest: 'build/index-sample.smil'
+            src: 'src/index.smil',
+            dest: 'build/grunt/index-sample.smil'
           },
           {
-            src: 'custom/templates.xsl',
-            dest: 'build/templates.xsl'
+            src: 'src/templates.xsl',
+            dest: 'build/grunt/templates.xsl'
           },
           {
-            src: 'custom/status.xml',
-            dest: 'build/status-sample.xml'
+            src: 'src/status.xml',
+            dest: 'build/grunt/status-sample.xml'
           },
           {
-            src: 'custom/nodel.xml',
-            dest: 'build/nodel.xml'
+            src: 'src/nodel.xml',
+            dest: 'build/grunt/nodel.xml'
           },
           {
-            src: 'custom/nodes.xml',
-            dest: 'build/nodes.xml'
+            src: 'src/nodes.xml',
+            dest: 'build/grunt/nodes.xml'
           },
           {
-            src: 'custom/toolkit.xml',
-            dest: 'build/toolkit.xml'
+            src: 'src/toolkit.xml',
+            dest: 'build/grunt/toolkit.xml'
           },
           {
-            src: 'custom/diagnostics.xml',
-            dest: 'build/diagnostics.xml'
+            src: 'src/diagnostics.xml',
+            dest: 'build/grunt/diagnostics.xml'
           },
           {
-            src: 'custom/schemas.json',
-            dest: 'build/schemas.json'
+            src: 'src/schemas.json',
+            dest: 'build/grunt/schemas.json'
           },
           {
-            src: 'custom/logo.png',
-            dest: 'build/img/logo.png'
+            src: 'src/logo.png',
+            dest: 'build/grunt/img/logo.png'
           },
           {
-            src: 'custom/custom-sample.py',
-            dest: 'build/custom-sample.py'
+            src: 'src/src-sample.py',
+            dest: 'build/grunt/src-sample.py'
           },
           {
-            src: 'custom/favicon.ico',
-            dest: 'build/img/favicon.ico'
+            src: 'src/favicon.ico',
+            dest: 'build/grunt/img/favicon.ico'
           }
         ]
       }
@@ -139,7 +139,7 @@ module.exports = function(grunt) {
           './node_modules/codemirror/lib/codemirror.css',
           './node_modules/codemirror/addon/dialog/dialog.css'
         ],
-        dest: './build/css/components.css'
+        dest: './build/grunt/css/components.css'
       },
       light: {
         src: [
@@ -150,7 +150,7 @@ module.exports = function(grunt) {
           './node_modules/codemirror/lib/codemirror.css',
           './node_modules/codemirror/addon/dialog/dialog.css'
         ],
-        dest: './build/css/components.default.css'
+        dest: './build/grunt/css/components.default.css'
       }
     },
     run: {
@@ -198,7 +198,7 @@ module.exports = function(grunt) {
           './node_modules/google-charts/dist/googleCharts.js',
           './temp/lodash.build.js'
         ],
-        dest: './build/js/components.js'
+        dest: './build/grunt/js/components.js'
       }
     },
     uglify: {  
@@ -206,21 +206,21 @@ module.exports = function(grunt) {
         compress: true  
       },  
       applib: {  
-        src: './build/js/components.js',
-        dest: './build/js/components.min.js'  
+        src: './build/grunt/js/components.js',
+        dest: './build/grunt/js/components.min.js'  
       }
     },
     xsltproc: {
       compile: {
         files: {
-          './build/index-sample.xml.htm': ['./dist/index-sample.xml']
+          './build/grunt/index-sample.xml.htm': ['./dist/index-sample.xml']
         }
       }
     },
     prettify: {
       html: {
         files: {
-          './build/index-sample.xml.htm': ['./dist/index-sample.xml.htm']
+          './build/grunt/index-sample.xml.htm': ['./dist/index-sample.xml.htm']
         }
       }
     },
