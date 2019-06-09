@@ -70,10 +70,11 @@ task grunt(type:Exec) {
 task copyContent(type: Copy) {
     from new File(project.buildDir, 'grunt')
     into new File(project.buildDir, 'www-content_stage')
+    exclude 'build.json'
 }
 
 task filterContentTemplates(type: Copy) {
-    from '.'
+    from 'src'
     into new File(project.buildDir, 'www-content_stage')
     include 'build.json' 
     filter(ReplaceTokens, tokens: [ 
