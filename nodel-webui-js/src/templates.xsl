@@ -182,6 +182,7 @@
   <!-- text -->
   <xsl:template match="text">
     <p>
+      <xsl:apply-templates select="icon"/>
       <xsl:if test="@showevent">
         <xsl:attribute name="class">
           <xsl:text>sect</xsl:text>
