@@ -30,3 +30,4 @@ _lastError.txt
 /nodel-jyhost/.nodel
 /nodel-jyhost/recipes
 nodel-webui-js/node_modules/
+/nodel-webui-js/temp
