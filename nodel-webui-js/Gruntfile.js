@@ -143,6 +143,16 @@ module.exports = function(grunt) {
             dest: 'build/grunt/img/favicon.ico'
           }
         ]
+      },
+      deploy: {
+        files: [
+          {
+            expand: true,
+            cwd: 'build/grunt/',
+            src: '**',
+            dest: '/Local/Nodel/custom/content/'
+          }
+        ]
       }
     },
     concat_css: {
@@ -245,5 +255,5 @@ module.exports = function(grunt) {
   grunt.registerTask('build', ['copy:updatetheme','replace','twbs:dark','concat_css:dark','twbs:light','concat_css:light','copy:main','concat','uglify']);
   grunt.registerTask('lodash', ['run:lodash']);
   grunt.registerTask('gfonts', ['googlefonts']);
-  grunt.registerTask('deploy', ['copy:main']);
+  grunt.registerTask('deploy', ['copy:main','copy:deploy']);
 };
