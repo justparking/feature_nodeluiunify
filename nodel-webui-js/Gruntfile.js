@@ -2,6 +2,23 @@ module.exports = function(grunt) {
   //Initializing the configuration object
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
+    googlefonts: {
+      build: {
+        options: {
+          fontPath: './build/grunt/fonts/',
+          cssFile: './temp/googlefonts.css',
+          httpPath: '../fonts/',
+          fonts: [
+            {
+              family: 'Roboto',
+              styles: [
+                100, 300, 400, 500, 700, 900
+              ]
+            }
+          ]
+        }
+      }
+    },
     replace: {
       fontawesome: {
         src: ['./node_modules/@fortawesome/fontawesome-free/css/all.css'],
@@ -137,7 +154,8 @@ module.exports = function(grunt) {
           './node_modules/bootstrap/dist/css/bootstrap-theme.css',
           './node_modules/jquery.scrollbar/jquery.scrollbar.css',
           './node_modules/codemirror/lib/codemirror.css',
-          './node_modules/codemirror/addon/dialog/dialog.css'
+          './node_modules/codemirror/addon/dialog/dialog.css',
+          './temp/googlefonts.css'
         ],
         dest: './build/grunt/css/components.css'
       },
@@ -148,7 +166,8 @@ module.exports = function(grunt) {
           './node_modules/bootstrap/dist/css/bootstrap-theme.css',
           './node_modules/jquery.scrollbar/jquery.scrollbar.css',
           './node_modules/codemirror/lib/codemirror.css',
-          './node_modules/codemirror/addon/dialog/dialog.css'
+          './node_modules/codemirror/addon/dialog/dialog.css',
+          './temp/googlefonts.css'
         ],
         dest: './build/grunt/css/components.default.css'
       }
@@ -220,9 +239,11 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-twbs');
   grunt.loadNpmTasks('grunt-run');
   grunt.loadNpmTasks('grunt-text-replace');
+  grunt.loadNpmTasks('grunt-google-fonts');
   // Task definition
-  grunt.registerTask('default', ['run:lodash', 'copy:updatetheme','replace','twbs:dark','concat_css:dark','twbs:light','concat_css:light','copy:main','concat','uglify']);
+  grunt.registerTask('default', ['googlefonts', 'run:lodash', 'copy:updatetheme','replace','twbs:dark','concat_css:dark','twbs:light','concat_css:light','copy:main','concat','uglify']);
   grunt.registerTask('build', ['copy:updatetheme','replace','twbs:dark','concat_css:dark','twbs:light','concat_css:light','copy:main','concat','uglify']);
   grunt.registerTask('lodash', ['run:lodash']);
+  grunt.registerTask('gfonts', ['googlefonts']);
   grunt.registerTask('deploy', ['copy:main']);
 };
