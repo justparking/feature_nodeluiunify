@@ -283,7 +283,8 @@ var converter = new Markdown.Converter();
 var unicodematch = new XRegExp("[^\\p{L}\\p{N}]", "gi");
 var colours = {'primary':'','success':'','danger':'','warning':'','info':'','default':''};
 var throttle = {'logs': []};
-var allowed = ['py','xml','xsl','js','json','html','htm','css','java','groovy','sql','sh','cs','bat','ini','txt','md','cmd'];
+var allowedtxt = ['py','xml','xsl','js','json','html','htm','css','java','groovy','sql','sh','cs','bat','ini','txt','md','cmd'];
+var allowedbinary = ['png','jpg','ico'];
 var nodeList = {'lst':[], 'flt':'', 'end':20};
 var nodeListreq = null;
 var hostList = {};
@@ -341,12 +342,33 @@ $(function() {
 
 var initEditor = function(){
   $('.nodel-editor textarea').each(function() {
+    var ele = this;
     var editor = CodeMirror.fromTextArea(this, {
       lineNumbers: true,
       matchBrackets: true,
       autoRefresh: true
     });
-    cmResize(editor, {resizableWidth: false})
+    cmResize(editor, {resizableWidth: false});
+    editor.on('drop', function(data, e) {
+      var file;
+      var files;
+      // Check if files were dropped
+      files = e.dataTransfer.files;
+      if (files.length > 0) {
+        e.preventDefault();
+        e.stopPropagation();
+        file = files[0];
+        var reader = new FileReader();
+        reader.onload = function() {
+          var addgrp = $('.editor').closest('.base').find('.addgrp');
+          $(addgrp).data('filedata',reader.result);
+          $(addgrp).find('.scriptnamval').val(file.name);
+          $(addgrp).find('.dropdown').not('.open').find('> button').dropdown('toggle');
+        }
+        reader.readAsArrayBuffer(file);
+        return false;
+      }
+    });
     $(this).data('editor', editor);
     $('.script_default').trigger('click');
   });
@@ -1072,7 +1094,7 @@ var setEvents = function(){
   });
   $('body').on('change', '.picker', function() {
     var ele = $(this).closest('.base');
-    $(ele).find('#script_save, #script_delete').prop("disabled", true);
+    $(ele).find('.script_save, .script_delete').prop("disabled", true);
     var editor = $(ele).find('textarea').data('editor');
     if(editor) {
       editor.setOption('readOnly', 'nocursor');
@@ -1112,12 +1134,16 @@ var setEvents = function(){
           default:
             editor.setOption("mode", "txt");
         }
-        editor.getDoc().setValue(data);
-        editor.setOption('readOnly', false);
+        if(allowedtxt.indexOf(path.split('.').pop()) > -1) {
+          editor.getDoc().setValue(data);
+          editor.setOption('readOnly', false);
+          $(ele).find('.script_save, .script_delete').prop("disabled", false);
+        } else if(allowedbinary.indexOf(path.split('.').pop()) > -1) {
+          editor.getDoc().setValue('binary file');
+          $(ele).find('.script_delete').prop("disabled", false);
+        }
       }).fail(function(e){
         alert("Error loading file: "+path, "danger");
-      }).always(function(){
-        $(ele).find('.script_save, .script_delete').prop("disabled", false);
       });
     }
   });
@@ -1177,16 +1203,20 @@ var setEvents = function(){
       editor.setOption('readOnly', false);
     }
   });
-  $('body').on('shown.bs.dropdown', '.nodeleditor .addgrp', function () {
-    $(this).find('.scriptnamval').val(null).get(0).focus();
-  });
   $('body').on('click', '.scriptsubmit', function(e) {
     e.preventDefault();
     var ele = $(this).closest('.base');
     var path = $(ele).find('.scriptnamval').val();
-    if(allowed.indexOf(path.split('.').pop()) > -1) {
+    var grp = $(ele).find('.addgrp');
+    if(allowedtxt.concat(allowedbinary).indexOf(path.split('.').pop()) > -1) {
       var url = 'http://' + host + '/REST/nodes/' + encodeURIComponent(node) + '/files/save?path=' +encodeURIComponent(path);
-      $.ajax({url:url, type:"POST", data:'', contentType:"application/octet-stream", success: function (data) {
+      var dta = '';
+      var prc = true;
+      if($(grp).data('filedata') !== null) {
+        dta = $(grp).data('filedata');
+        prc = false;
+      }
+      $.ajax({url:url, type:"POST", data:dta, processData:prc, contentType:"application/octet-stream", success: function (data) {
         $(ele).find('.open > button').dropdown('toggle');
         alert('File added');
         $(ele).find('.picker').data('goto', path);
@@ -1203,7 +1233,7 @@ var setEvents = function(){
       });
       return false;
     } else {
-      alert('Invalid file name, must end with: ' + allowed.join(', '), 'danger');
+      alert('Invalid file name, must end with: ' + allowedtxt.concat(allowedbinary).join(', '), 'danger');
     }
   });
   $('body').on('keydown', '.nodel-editor', function(e) {
@@ -1215,7 +1245,11 @@ var setEvents = function(){
     }
   });
   $('body').on('shown.bs.dropdown', '.nodel-editor .addgrp', function () {
-    $(this).find('.scriptnamval').val(null).get(0).focus();
+    $(this).find('.scriptnamval').get(0).focus();
+  });
+  $('body').on('hidden.bs.dropdown', '.nodel-editor .addgrp', function () {
+    $(this).find('.scriptnamval').val(null);
+    $(this).data('filedata', null);
   });
   $('body').on('shown.bs.dropdown', '.srchgrp', function () {
     $(this).find('.node').val(null).get(0).focus();
@@ -1451,7 +1485,7 @@ var fillPicker = function() {
         else return -1;
       });
       $.each(data, function(i, file){
-        if(allowed.indexOf(file['path'].split('.').pop()) > -1) $(picker).append('<option value="'+file['path']+'">'+file['path']+'</option>');
+        if(allowedtxt.concat(allowedbinary).indexOf(file['path'].split('.').pop()) > -1) $(picker).append('<option value="'+file['path']+'">'+file['path']+'</option>');
       });
       if((typeof $(picker).data('goto') !== 'undefined') && ($(picker).data('goto') != '')) {
         $(picker).val($(picker).data('goto'));
