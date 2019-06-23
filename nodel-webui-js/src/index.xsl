@@ -31,6 +31,7 @@
         </link>
         <link href="css/main.css" rel="stylesheet"/>
         <link href="img/favicon.ico" rel="shortcut icon"/>
+        <link href="img/apple-touch-icon.png" rel="apple-touch-icon"/>
       </head>
       <body>
         <xsl:if test="//footer">
