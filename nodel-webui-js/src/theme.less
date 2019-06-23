@@ -664,11 +664,20 @@ div.nodel-charts {
     border-radius: @panel-border-radius;
     border: 1px solid @panel-default-border;
     padding: 1px;
+    -webkit-transition: opacity 0.3s ease-in-out;
+    -moz-transition: opacity 0.3s ease-in-out;
+    transition: opacity 0.3s ease-in-out;
     textarea {
       height: 160px;
       width: 100%;
       max-width: 100%;
       min-width: 100%;
+    }
+    &.drop {
+      opacity: 0.4;
+      .CodeMirror-cursors {
+        opacity: 0;
+      }
     }
   }
   .flexgrow {

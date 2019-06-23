@@ -340,6 +340,17 @@ $(function() {
   }
 });
 
+var isFileTransfer = function (e) {
+  if (e.dataTransfer.types) {
+    for (var i=0; i<e.dataTransfer.types.length; i++) {
+      if (e.dataTransfer.types[i] == "Files") {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 var initEditor = function(){
   $('.nodel-editor textarea').each(function() {
     var ele = this;
@@ -349,12 +360,15 @@ var initEditor = function(){
       autoRefresh: true
     });
     cmResize(editor, {resizableWidth: false});
+    var counter = 0;
     editor.on('drop', function(data, e) {
       var file;
       var files;
       // Check if files were dropped
       files = e.dataTransfer.files;
       if (files.length > 0) {
+        $(ele).closest('.editor').removeClass('drop');
+        counter = 0;
         e.preventDefault();
         e.stopPropagation();
         file = files[0];
@@ -367,6 +381,20 @@ var initEditor = function(){
         }
         reader.readAsArrayBuffer(file);
         return false;
+      }
+    });
+    editor.on('dragenter', function(data, e) {
+      if(isFileTransfer(e)){
+        counter++;
+        $(ele).closest('.editor').addClass('drop');
+      }
+    });
+    editor.on('dragleave', function(data, e) {
+      if(isFileTransfer(e)){
+        counter--;
+        if (counter === 0) { 
+          $(ele).closest('.editor').removeClass('drop');
+        }
       }
     });
     $(this).data('editor', editor);
@@ -529,7 +557,7 @@ var updateNodelinks = function(e, arg){
 $.observable(nodeList).observeAll(updateNodelinks);
 
 var updateHostIcon = function(host) {
-  var hash = XXH.h64(host, 0x4e6f64656c).toString(16)
+  var hash = XXH.h64(host, 0x4e6f64656c).toString(16).padStart(16,'0');
   var options = {
     background: [255, 255, 255, 0],
     margin: 0.1,
