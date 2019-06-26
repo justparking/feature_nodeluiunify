@@ -1231,6 +1231,10 @@ var setEvents = function(){
       editor.setOption('readOnly', false);
     }
   });
+  $('body').on('keyup', '.scriptnamval', function(e) {
+    var charCode = e.charCode || e.keyCode;
+    if(charCode == 13) $(this).closest('form').find('.scriptsubmit').click();
+  });
   $('body').on('click', '.scriptsubmit', function(e) {
     e.preventDefault();
     var ele = $(this).closest('.base');
