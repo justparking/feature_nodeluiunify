@@ -29,7 +29,9 @@
             </xsl:choose>
           </xsl:attribute>
         </link>
-        <link href="css/main.css" rel="stylesheet"/>
+        <xsl:if test="not(/pages/@core)">
+          <link href="css/main.css" rel="stylesheet"/>
+        </xsl:if>
         <link href="img/favicon.ico" rel="shortcut icon"/>
         <link href="img/apple-touch-icon.png" rel="apple-touch-icon"/>
       </head>
@@ -133,6 +135,29 @@
                 </xsl:if>
                 <xsl:if test="/pages/header/nodel">
                   <xsl:for-each select="/pages/header/nodel">
+                    <xsl:if test="@type='edit'">
+                      <ul class="nav navbar-nav edtgrp">
+                        <li class="dropdown">
+                          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Functions <span class="caret"></span></a>
+                          <ul class="dropdown-menu">
+                            <li class="form">
+                              <div>
+                                <input class="form-control renamenode" type="text"/>
+                                <button class="btn btn-default renamenodesubmit">Rename</button>
+                              </div>
+                            </li>
+                            <li class="form">
+                              <div>
+                                <div class="btn-group btn-group-justified">
+                                  <a class="btn btn-danger deletenodsubmit" role="button">Delete node</a>
+                                  <a class="btn btn-warning restartnodsubmit" role="button">Restart node</a>
+                                </div>
+                              </div>
+                            </li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </xsl:if>
                     <xsl:if test="@type='nav'">
                       <ul class="nav navbar-nav srchgrp">
                         <li class="dropdown">
@@ -259,7 +284,10 @@
         </xsl:if>
         <!-- end footer -->
         <script src="js/components.js"></script>
-        <script src="js/main.js"></script>
+        <script src="js/nodel.js"></script>
+        <xsl:if test="not(/pages/@core)">
+          <script src="js/main.js"></script>
+        </xsl:if>
         <script id="dynamicSelect" type="text/x-jsrender">
         <![CDATA[
           {{for arg}}
@@ -663,7 +691,7 @@
             </form>
             <div class="list-group list-group-basic">
               {^{for lst filter=~srcflt mapDepends='flt' srch='node' sort='node' end=end}}
-                <a class="list-group-item" data-link="href{:reachable}" target="_blank"><img src="data:image/svg+xml;base64,{{:icon}}"/>&nbsp;{^{:~highlight(node,~root.flt)}}</a>
+                <a class="list-group-item" data-link="href{:address} class{:~root^hosts[~encodr(host)].reachable ? 'list-group-item' : 'list-group-item unreachable'}" target="_blank"><img src="data:image/svg+xml;base64,{{:~root^hosts[~encodr(host)].icon}}"/>&nbsp;{^{:~highlight(node,~root.flt)}}</a>
               {{/for}}
             </div>
           </div>
