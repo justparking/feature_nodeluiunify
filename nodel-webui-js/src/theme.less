@@ -734,11 +734,21 @@ div.nodel-charts {
     margin-left: 5px;
     color: @gray-light;
   }
+  .list-group-item.unreachable {
+    opacity: 0.5;
+    > img {
+      -webkit-filter: opacity(0.5) grayscale(1);
+      filter: opacity(0.5) grayscale(1);
+    }
+  }
 }
-.srchgrp {
+.srchgrp, .edtgrp {
   .form {
     > div {
       position: relative;
+      > input + .btn {
+        margin-top: @padding-base-vertical;
+      }
     }
   }
 }
@@ -774,7 +784,9 @@ div.nodel-charts {
   }
   .navbar-right .navbar-nav {
     float: right;
-    padding-right: 15px;
+    &:first-of-type {
+      padding-right: 15px;
+    }
   }
   .dropdown-menu li.form {
     min-width: 240px;
