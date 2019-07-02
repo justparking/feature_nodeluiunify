@@ -1095,7 +1095,7 @@ var setEvents = function(){
     $(this).siblings('div.autocomplete').remove();
   });
   $('body').on("click", ".nodel-remote .remotefill", function(e) {
-    var data = $.view(ele).data;
+    var data = $.view(this).data;
     var grp = ($(this).hasClass('action')) ? 'actions' : 'events';
     var fld = (grp == 'actions') ? 'action' : 'event';
     var ele = this;
