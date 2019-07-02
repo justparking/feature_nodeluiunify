@@ -291,8 +291,7 @@ var nodeListreq = null;
 
 $(function() {
   host = document.location.hostname + ':' + window.document.location.port;
-  updateHost(host);
-  $('.nodel-icon img').attr("src", "data:image/svg+xml;base64,"+nodeList['hosts'][encodr(host)].icon);
+  $('.nodel-icon img').attr("src", "data:image/svg+xml;base64,"+generateHostIcon(host));
   $('.nodel-icon a').attr("href", window.document.location.protocol+"//"+host);
   $('.nodel-icon a').attr("title", host);
   if(navigator.issmart){
@@ -554,6 +553,7 @@ var createDynamicElements = function(){
   return $.when.apply($, p).promise();
 };
 
+/*
 var updateNodelinks = function(e, arg){
   if(arg.change == "insert") {
     if(_.isUndefined(nodeList['hosts'][encodr(nodeList.lst[0].host)])) updateHost(nodeList.lst[0].host);
@@ -561,8 +561,9 @@ var updateNodelinks = function(e, arg){
 };
 
 $.observe(nodeList, 'lst', updateNodelinks);
+*/
 
-var updateHost = function(host) {
+var generateHostIcon = function(host) {
   var hash = XXH.h64(host, 0x4e6f64656c).toString(16).padStart(16,'0');
   var options = {
     background: [255, 255, 255, 0],
@@ -570,7 +571,11 @@ var updateHost = function(host) {
     size: 20,
     format: 'svg'
   };
-  var data = new Identicon(hash, options).toString();
+  return new Identicon(hash, options).toString();
+}
+
+var updateHost = function(host) {
+  var data = generateHostIcon(host);
   var newhost = {};
   newhost.icon = data;
   newhost.reachable = false;
@@ -597,6 +602,7 @@ var updateNodelist = function(standalone=false){
       if(ind == -1) {
         var node = data[i];
         node.host = getHost(data[i].address);
+        if(_.isUndefined(nodeList['hosts'][encodr(node.host)])) updateHost(node.host);
         $.observable(nodeList['lst']).insert(0, node);
       }
     }
@@ -619,14 +625,14 @@ var updateNodelist = function(standalone=false){
 
 var checkReachable = function(host){
   var d = $.Deferred();
-  $.get({
+  $.ajax({
     url: 'http://'+host+'/REST',
     timeout: 3000
   }).done(function() {
     d.resolve(true);
   }).fail(function(e,s,t){
-    if((e.state() == 'rejected') || (e.status == 401)) d.resolve(true);
-    else d.resolve();
+    if((e.state() == 'rejected') && (e.statusText == 'error')) d.resolve(true);
+    else d.resolve(false);
   });
   return d.promise();
 };
@@ -717,10 +723,10 @@ var linkToNode = function(node, grp, name){
     return _ref.node == node;
   });
   if(ind > -1 ) {
-    if(!_.isUndefined(nodeList.lst[ind].reachable)){
+    if(!_.isUndefined(nodeList.lst[ind].address)){
       $('.nodel-remote').each(function(){
         var data = $.view(this).data;
-        $.observable(data).setProperty(grp+'.'+name+'._$link', nodeList.lst[ind].reachable);
+        $.observable(data).setProperty(grp+'.'+name+'._$link', nodeList.lst[ind].address);
       });
     }
   }
@@ -992,7 +998,7 @@ var setEvents = function(){
         $.each(data, function(key, value) {
           var re = new RegExp("(.*)("+srchstr+")(.*)","ig");
           var val = value.node.replace(re, '$1<strong>$2</strong>$3')
-          $('<li>'+val+'</li>').data('address', value.reachable).appendTo(list);
+          $('<li>'+val+'</li>').data('address', value.address).appendTo(list);
           return key < 6;
         });
       } else $(ele).siblings('div.autocomplete').remove();
@@ -1042,7 +1048,7 @@ var setEvents = function(){
         var items = $('<ul></ul>');
         $.each(data, function(key, value) {
           var parser = document.createElement('a');
-          parser.href = value.reachable;
+          parser.href = value.address;
           var host = parser.host;
           $(parser).remove();
           //var lnode = value.node;
@@ -1105,7 +1111,7 @@ var setEvents = function(){
           var strs=[];
           $.each(data, function(key, value) {
             var parser = document.createElement('a');
-            parser.href = value.reachable;
+            parser.href = value.address;
             var host = parser.host;
             $(parser).remove();
             var lnode = value.node;
