@@ -79,8 +79,12 @@ module.exports = function(grunt) {
             dest: 'build/grunt/css/main-sample.css'
           },
           {
+            src: 'src/nodel.js',
+            dest: 'build/grunt/js/nodel.js'
+          },
+          {
             src: 'src/main.js',
-            dest: 'build/grunt/js/main.js'
+            dest: 'build/grunt/js/main-sample.js'
           },
           {
             src: 'src/index.xml',
