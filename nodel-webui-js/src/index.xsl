@@ -79,7 +79,7 @@
                 </xsl:otherwise>
                 </xsl:choose>
                 <xsl:if test="/pages/header/nodel/@type='hosticon'">
-                  <span class="nodel-icon"><a target="_blank"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"/></a></span>
+                  <span class="nodel-icon"><a><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"/></a></span>
                 </xsl:if>
                 <span id="title"><xsl:value-of select="/pages/@title"/></span>
               </div>
@@ -180,8 +180,8 @@
                               </div>
                             </li>
                             <li role="separator" class="divider"></li>
-                            <li><a href="/toolkit.xml" target="_blank">Toolkit</a></li>
-                            <li><a href="/diagnostics.xml" target="_blank">Diagnostics</a></li>
+                            <li><a href="/toolkit.xml">Toolkit</a></li>
+                            <li><a href="/diagnostics.xml">Diagnostics</a></li>
                           </ul>
                         </li>
                       </ul>
@@ -539,7 +539,7 @@
                                                     <%>title%>
                                                     {^{if ~initHid('_$status')}}
                                                       {^{if _$status == 'Wired'}}
-                                                        <a data-link="href{:_$link}" target="_blank"><span class="binding wired fas fa-link"></span></a>
+                                                        <a data-link="href{:_$link}"><span class="binding wired fas fa-link"></span></a>
                                                       {{/if}}
                                                     {{/if}}
                                                   </label>
@@ -703,7 +703,7 @@
             </form>
             <div class="list-group list-group-basic">
               {^{for lst filter=~srcflt mapDepends='flt' srch='node' sort='node' end=end}}
-                <a class="list-group-item" data-link="href{:address} class{:~root^hosts[~encodr(host)].reachable ? 'list-group-item' : 'list-group-item unreachable'}" target="_blank"><img src="data:image/svg+xml;base64,{{:~root^hosts[~encodr(host)].icon}}"/>&nbsp;{^{:~highlight(node,~root.flt)}}</a>
+                <a class="list-group-item" data-link="href{:address} class{:~root^hosts[~encodr(host)].reachable ? 'list-group-item' : 'list-group-item unreachable'}"><img src="data:image/svg+xml;base64,{{:~root^hosts[~encodr(host)].icon}}"/>&nbsp;{^{:~highlight(node,~root.flt)}}</a>
               {{/for}}
             </div>
           </div>
@@ -760,7 +760,7 @@
                 </tr>
                 <tr>
                   <th scope="row">Commit</th>
-                  <td><a href="#" target="_blank" data-link="href{:'https://github.com/museumvictoria/nodel/commit/'+build.id}">{{>build.id}}</a></td>
+                  <td><a href="#" data-link="href{:'https://github.com/museumvictoria/nodel/commit/'+build.id}">{{>build.id}}</a></td>
                 </tr>
               </tbody>
             </table>
