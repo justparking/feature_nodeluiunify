@@ -5,7 +5,7 @@ module.exports = function(grunt) {
     googlefonts: {
       build: {
         options: {
-          fontPath: './build/grunt/fonts/',
+          fontPath: './build/grunt/v1/fonts/',
           cssFile: './temp/googlefonts.css',
           httpPath: '../fonts/',
           fonts: [
@@ -62,7 +62,7 @@ module.exports = function(grunt) {
             expand: true,
             cwd: './node_modules/@fortawesome/fontawesome-free/webfonts/',
             src: '**',
-            dest: 'build/grunt/fonts/',
+            dest: 'build/grunt/v1/fonts/',
             flatten: true, 
             filter: 'isFile'
           },
@@ -70,21 +70,21 @@ module.exports = function(grunt) {
             expand: true,
             cwd: './node_modules/bootstrap/dist/fonts/',
             src: '**',
-            dest: 'build/grunt/fonts/',
+            dest: 'build/grunt/v1/fonts/',
             flatten: true, 
             filter: 'isFile'
           },
           {
-            src: 'src/main.css',
-            dest: 'build/grunt/css/main-sample.css'
+            src: 'src/custom.css',
+            dest: 'build/grunt/css/custom-sample.css'
           },
           {
             src: 'src/nodel.js',
-            dest: 'build/grunt/js/nodel.js'
+            dest: 'build/grunt/v1/js/nodel.js'
           },
           {
-            src: 'src/main.js',
-            dest: 'build/grunt/js/main-sample.js'
+            src: 'src/custom.js',
+            dest: 'build/grunt/js/custom-sample.js'
           },
           {
             src: 'src/index.xml',
@@ -92,11 +92,11 @@ module.exports = function(grunt) {
           },
           {
             src: 'src/index.xsd',
-            dest: 'build/grunt/index.xsd'
+            dest: 'build/grunt/v1/index.xsd'
           },
           {
             src: 'src/index.xsl',
-            dest: 'build/grunt/index.xsl'
+            dest: 'build/grunt/v1/index.xsl'
           },
           {
             src: 'src/index.htm',
@@ -108,7 +108,7 @@ module.exports = function(grunt) {
           },
           {
             src: 'src/templates.xsl',
-            dest: 'build/grunt/templates.xsl'
+            dest: 'build/grunt/v1/templates.xsl'
           },
           {
             src: 'src/status.xml',
@@ -136,7 +136,7 @@ module.exports = function(grunt) {
           },
           {
             src: 'src/logo.png',
-            dest: 'build/grunt/img/logo.png'
+            dest: 'build/grunt/v1/img/logo.png'
           },
           {
             src: 'src/custom-sample.py',
@@ -144,7 +144,7 @@ module.exports = function(grunt) {
           },
           {
             src: 'src/favicon.ico',
-            dest: 'build/grunt/img/favicon.ico'
+            dest: 'build/grunt/v1/img/favicon.ico'
           }
         ]
       },
@@ -171,7 +171,7 @@ module.exports = function(grunt) {
           './node_modules/codemirror/addon/dialog/dialog.css',
           './temp/googlefonts.css'
         ],
-        dest: './build/grunt/css/components.css'
+        dest: './build/grunt/v1/css/components.css'
       },
       light: {
         src: [
@@ -183,7 +183,7 @@ module.exports = function(grunt) {
           './node_modules/codemirror/addon/dialog/dialog.css',
           './temp/googlefonts.css'
         ],
-        dest: './build/grunt/css/components.default.css'
+        dest: './build/grunt/v1/css/components.default.css'
       }
     },
     run: {
@@ -231,7 +231,7 @@ module.exports = function(grunt) {
           './node_modules/google-charts/dist/googleCharts.js',
           './temp/lodash.build.js'
         ],
-        dest: './build/grunt/js/components.js'
+        dest: './build/grunt/v1/js/components.js'
       }
     },
     uglify: {  
@@ -239,8 +239,8 @@ module.exports = function(grunt) {
         compress: true  
       },  
       applib: {  
-        src: './build/grunt/js/components.js',
-        dest: './build/grunt/js/components.min.js'  
+        src: './build/grunt/v1/js/components.js',
+        dest: './build/grunt/v1/js/components.min.js'  
       }
     }
   });

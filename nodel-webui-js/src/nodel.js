@@ -1316,14 +1316,29 @@ var setEvents = function(){
   $('body').on('change', '.uipicker', function (e) {
     window.location.href = $(this).val();
   });
-  $('body').on('click', '.restartnodsubmit', function (e) {
+  $('body').on('click', '.renamenodesubmit', function (e) {
+    var nodenameraw = $(this).closest('.form').find('.renamenode').val();
+    if(nodename != nodenameraw) {
+      if(confirm('Are you sure?')) {
+        var nodename = {"value": nodenameraw};
+        $.getJSON('http://' + host + '/REST/nodes/' + encodeURIComponent(node) + '/rename', nodename, function (data) {
+          alert("Rename successful, redirecting", "success", 0);
+          clearTimers();
+          checkRedirect('http://' + host + '/nodes/' + encodeURIComponent(nodenameraw));
+        }).fail(function(e){
+          alert("Error renaming", "danger");
+        });
+      }
+    }
+  });
+  $('body').on('click', '.restartnodesubmit', function (e) {
     $.get('http://' + host + '/REST/nodes/' + encodeURIComponent(node) + '/restart', function (data) {
       alert("Restarting, please wait", "success", 0);
     }).fail(function(e){
       alert("Error restarting", "danger");
     });
   });
-  $('body').on('click', '.deletenodsubmit', function (e) {
+  $('body').on('click', '.deletenodesubmit', function (e) {
     if(confirm('Are you sure?')) {
       $.getJSON('http://' + host + '/REST/nodes/' + encodeURIComponent(node) + '/remove?confirm=true', function (data) {
         alert("Delete successful, redirecting", "success", 0);

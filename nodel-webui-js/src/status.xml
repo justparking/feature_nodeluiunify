@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet type="text/xsl" href="index.xsl"?>
+<?xml-stylesheet type="text/xsl" href="v1/index.xsl"?>
 <pages title="Status Page">
   <page title="Overview">
     <row>

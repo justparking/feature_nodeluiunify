@@ -19,21 +19,27 @@
           <xsl:attribute name="href">
             <xsl:choose>
               <xsl:when test="/pages/@theme">
-                <xsl:text>css/components.</xsl:text>
+                <xsl:text>v1/css/components.</xsl:text>
                 <xsl:value-of select="/pages/@theme"/>
                 <xsl:text>.css</xsl:text>
               </xsl:when>
               <xsl:otherwise>
-                <xsl:text>css/components.css</xsl:text>
+                <xsl:text>v1/css/components.css</xsl:text>
               </xsl:otherwise>
             </xsl:choose>
           </xsl:attribute>
         </link>
         <xsl:if test="not(/pages/@core)">
-          <link href="css/main.css" rel="stylesheet"/>
+          <xsl:if test="/pages/@css">
+            <link rel="stylesheet">
+              <xsl:attribute name="href">
+                <xsl:value-of select="/pages/@css"/>
+              </xsl:attribute>
+            </link>
+          </xsl:if>
         </xsl:if>
-        <link href="img/favicon.ico" rel="shortcut icon"/>
-        <link href="img/apple-touch-icon.png" rel="apple-touch-icon"/>
+        <link href="v1/img/favicon.ico" rel="shortcut icon"/>
+        <link href="v1/img/apple-touch-icon.png" rel="apple-touch-icon"/>
       </head>
       <body>
         <xsl:if test="//footer">
@@ -69,7 +75,7 @@
                   <img src="{/pages/@logo}"/>
                 </xsl:when>
                 <xsl:otherwise>
-                  <img src="img/logo.png"/>
+                  <img src="v1/img/logo.png"/>
                 </xsl:otherwise>
                 </xsl:choose>
                 <xsl:if test="/pages/header/nodel/@type='hosticon'">
@@ -149,8 +155,8 @@
                             <li class="form">
                               <div>
                                 <div class="btn-group btn-group-justified">
-                                  <a class="btn btn-danger deletenodsubmit" role="button">Delete node</a>
-                                  <a class="btn btn-warning restartnodsubmit" role="button">Restart node</a>
+                                  <a class="btn btn-danger deletenodesubmit" role="button">Delete node</a>
+                                  <a class="btn btn-warning restartnodesubmit" role="button">Restart node</a>
                                 </div>
                               </div>
                             </li>
@@ -283,10 +289,16 @@
           </footer>
         </xsl:if>
         <!-- end footer -->
-        <script src="js/components.js"></script>
-        <script src="js/nodel.js"></script>
+        <script src="v1/js/components.js"></script>
+        <script src="v1/js/nodel.js"></script>
         <xsl:if test="not(/pages/@core)">
-          <script src="js/main.js"></script>
+          <xsl:if test="/pages/@js">
+            <script>
+              <xsl:attribute name="src">
+                <xsl:value-of select="/pages/@js"/>
+              </xsl:attribute>
+            </script>
+          </xsl:if>
         </xsl:if>
         <script id="dynamicSelect" type="text/x-jsrender">
         <![CDATA[
