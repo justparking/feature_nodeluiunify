@@ -222,7 +222,7 @@ var updatesignal = function(el, val) {
 
 var getHost = function(url){
   var parser = document.createElement('a');
-  parser.href = nodeList.lst[0].address;
+  parser.href = url;
   var host = parser.host;
   $(parser).remove();
   return host;
@@ -255,7 +255,7 @@ var caretToEnd = function(ele) {
 
 var alert = function(message, type, duration){
   var cls = type || "success";
-  duration = duration || 3000;
+  duration = _.isNumber(duration) ? duration : 3000;
   clearTimeout($('.alert').stop().data('timer'));
   $('.alert').removeClass('alert-danger alert-success').addClass('alert-'+cls).children('span.message').html('<div>'+message+'</div>');
   $('.alert').slideDown(function() {
@@ -278,21 +278,21 @@ var checkRedirect = function(url) {
   });
 };
 
-var node = host = ''; //= opts = '';
+var node = host = nodename = nodedesc = ''; //= opts = '';
 var converter = new Markdown.Converter();
 var unicodematch = new XRegExp("[^\\p{L}\\p{N}]", "gi");
 var colours = {'primary':'','success':'','danger':'','warning':'','info':'','default':''};
 var throttle = {'logs': []};
 var allowedtxt = ['py','xml','xsl','js','json','html','htm','css','java','groovy','sql','sh','cs','bat','ini','txt','md','cmd'];
 var allowedbinary = ['png','jpg','ico'];
-var nodeList = {'lst':[], 'flt':'', 'end':20};
+var nodeList = {'lst':[], 'flt':'', 'end':20, 'hosts':{}};
 var nodeListreq = null;
-var hostList = {};
+//var hostList = {};
 
 $(function() {
   host = document.location.hostname + ':' + window.document.location.port;
-  updateHostIcon(host);
-  $('.nodel-icon img').attr("src", "data:image/svg+xml;base64,"+hostList[host]);
+  updateHost(host);
+  $('.nodel-icon img').attr("src", "data:image/svg+xml;base64,"+nodeList['hosts'][encodr(host)].icon);
   $('.nodel-icon a').attr("href", window.document.location.protocol+"//"+host);
   $('.nodel-icon a').attr("title", host);
   if(navigator.issmart){
@@ -303,33 +303,34 @@ $(function() {
   // get the node name
   if(window.location.pathname.split( '/' )[1]=="nodes") node = decodeURIComponent(window.location.pathname.split( '/' )[2].replace(/\+/g, '%20'));
   if(node) {
-    if(!$('.navbar-brand #title').text()) $('.navbar-brand #title').text(node);
-    $.when(createDynamicElements().then(function(){
-      convertNames();
-      updateConsoleForm();
-      updateLogForm();
-      updateCharts();
-      updateNodelist().then(function(){
-        setEvents();
-        updateLogs();
-        // selecct page
-        if(window.location.hash) $("*[data-nav='"+window.location.hash.substring(1)+"']").trigger('click');
-        else $('*[data-nav]').first().trigger('click');
-        // init scrollable divs
-        $('.scrollbar-inner').scrollbar();
-        // hide sects by default
-        $(".sect").hide();
-        // init editor
-        initEditor();
-        // init toolkit
-        initToolkit();
-      });
-      fillPicker();
-      checkReload();
-    }));
+    getNodeDetails().then(function(){
+      $.when(createDynamicElements().then(function(){
+        convertNames();
+        updateConsoleForm();
+        updateLogForm();
+        updateCharts();
+        updateNodelist().then(function(){
+          setEvents();
+          updateLogs();
+          // selecct page
+          if(window.location.hash) $("*[data-nav='"+window.location.hash.substring(1)+"']").trigger('click');
+          else $('*[data-nav]').first().trigger('click');
+          // init scrollable divs
+          $('.scrollbar-inner').scrollbar();
+          // hide sects by default
+          $(".sect").hide();
+          // init editor
+          initEditor();
+          // init toolkit
+          initToolkit();
+        });
+        fillPicker();
+        checkReload();
+      }));
+    });
   } else {
     $.when(createDynamicElements().then(function(){
-      updateNodelist().then(function(){
+      updateNodelist(true).then(function(){
         setEvents();
         updateLogForm();
         updateCharts();
@@ -349,7 +350,26 @@ var isFileTransfer = function (e) {
     }
   }
   return false;
+};
+
+var clearTimers = function(){
+  if(!_.isUndefined($('body').data('nodel-console-timer'))) clearTimeout($('body').data('nodel-console-timer'));
+  if(!_.isUndefined($('body').data('nodelistTimer'))) clearTimeout($('body').data('nodelistTimer'));
+  if(!_.isUndefined($('body').data('timer'))) clearTimeout($('body').data('nodeltimeristTimer'));
 }
+
+var getNodeDetails = function(){
+  var d = $.Deferred();
+  $.getJSON('http://'+host+'/REST/nodes/'+encodeURIComponent(node)+'/', function(data) {
+    if(!$('.navbar-brand #title').text()) $('.navbar-brand #title').text(data.name);
+    $('.navbar-brand #title').attr('title', data.desc);
+    nodename = data.name;
+    nodedesc = data.desc;
+  }).always(function(){
+    d.resolve();
+  });
+  return d.promise();
+};
 
 var initEditor = function(){
   $('.nodel-editor textarea').each(function() {
@@ -400,7 +420,7 @@ var initEditor = function(){
     $(this).data('editor', editor);
     $('.script_default').trigger('click');
   });
-}
+};
 
 var initToolkit = function(){
   $('.nodel-toolkit textarea').each(function() {
@@ -413,7 +433,7 @@ var initToolkit = function(){
     editor.setOption('readOnly', 'nocursor');
     editor.setOption('mode', 'python');
   });
-}
+};
 
 var createDynamicElements = function(){
   var p = [];
@@ -535,28 +555,14 @@ var createDynamicElements = function(){
 };
 
 var updateNodelinks = function(e, arg){
-  // TODO: make this actually check reachability with checkLinks
-  var node = '';
   if(arg.change == "insert") {
-    $.observable(nodeList.lst[0]).setProperty('reachable', nodeList.lst[0].address);
-    var host = getHost(nodeList.lst[0].address);
-    if(!_.isUndefined(hostList[host])) $.observable(nodeList.lst[0]).setProperty('icon', hostList[host]);
-    else $.observable(nodeList.lst[0]).setProperty('icon', updateHostIcon(host));
-  } else if ((arg.change == "set") && (arg.path == "address") && (!arg.remove)) {
-    var node = e.data.observeAll.parents()[0].node;
-    var ind = nodeList['lst'].findIndex(function(_ref) {
-      return _ref.node == node;
-    });
-    $.observable(nodeList.lst[ind]).setProperty('reachable', nodeList.lst[ind].address);
-    var host = getHost(nodeList.lst[ind].address);
-    if(!_.isUndefined(hostList[host])) $.observable(nodeList.lst[0]).setProperty('icon', hostList[host]);
-    else $.observable(nodeList.lst[0]).setProperty('icon', updateHostIcon(host));
+    if(_.isUndefined(nodeList['hosts'][encodr(nodeList.lst[0].host)])) updateHost(nodeList.lst[0].host);
   }
 };
 
-$.observable(nodeList).observeAll(updateNodelinks);
+$.observe(nodeList, 'lst', updateNodelinks);
 
-var updateHostIcon = function(host) {
+var updateHost = function(host) {
   var hash = XXH.h64(host, 0x4e6f64656c).toString(16).padStart(16,'0');
   var options = {
     background: [255, 255, 255, 0],
@@ -565,56 +571,64 @@ var updateHostIcon = function(host) {
     format: 'svg'
   };
   var data = new Identicon(hash, options).toString();
-  hostList[host] = data;
-  return data;
-}
+  var newhost = {};
+  newhost.icon = data;
+  newhost.reachable = false;
+  newhost[encodr(host)] = newhost;
+  var hosts = $.extend({}, nodeList['hosts'], newhost);
+  $.observable(nodeList).setProperty('hosts', hosts);
+  checkReachable(host).then(function(reachable){
+    if(reachable) $.observable(nodeList['hosts'][encodr(host)]).setProperty('reachable', true);
+  });
+};
 
-var updateNodelist = function(){
+var updateNodelist = function(standalone=false){
   var d = $.Deferred();
   if(nodeListreq) nodeListreq.abort();
+  clearTimeout($('body').data('nodelistTimer'));
   nodeListreq = $.getJSON('http://'+host+'/REST/nodeURLs', function(data) {
+    if(standalone) online();
     for (i=0; i<data.length; i++) {
       if(nodeList['lst']) {
         var ind = nodeList['lst'].findIndex(function(_ref) {
-          return _ref.node == data[i].node;
+          return (_ref.node == data[i].node) && (_ref.host == getHost(data[i].address));
         });
       } else ind = -1;
-      if(ind > -1) {
-        if(nodeList['lst'][ind] !== data[i].address) $.observable(nodeList['lst'][ind]).setProperty({'address': data[i].address});
-      } else $.observable(nodeList['lst']).insert(0, data[i]);
+      if(ind == -1) {
+        var node = data[i];
+        node.host = getHost(data[i].address);
+        $.observable(nodeList['lst']).insert(0, node);
+      }
     }
     for (i=0; i<nodeList['lst'].length; i++) {
       if(data){
         var ind = data.findIndex(function(_ref) {
-          return _ref.node == nodeList['lst'][i].node;
+          return (_ref.node == nodeList['lst'][i].node) && (getHost(_ref.address) == nodeList['lst'][i].host);
         });
       } else ind = -1;
       if(ind == -1) $.observable(nodeList['lst']).remove(i);
-    } 
+    }
+  }).fail(function(){
+    if(standalone) offline();
   }).always(function(){
-    $('body').data('nodelistTimer', setTimeout(function() { updateNodelist(); }, 30000));
+    $('body').data('nodelistTimer', setTimeout(function() { updateNodelist(standalone); }, 30000));
     d.resolve();
   });
   return d.promise();
 };
 
-var checkLinks = function(urls){
-  var p = [];
-  var worked = [];
-  $.each(urls, function(i,url){
-    var d = $.Deferred();
-    $.get({
-      url: url+'/REST',
-      timeout: 3000
-    }).done(function() {
-      worked.push(url);
-      d.resolve(worked);
-    }).fail(function(){
-      d.resolve();
-    });
-    p.push(d);
+var checkReachable = function(host){
+  var d = $.Deferred();
+  $.get({
+    url: 'http://'+host+'/REST',
+    timeout: 3000
+  }).done(function() {
+    d.resolve(true);
+  }).fail(function(e,s,t){
+    if((e.state() == 'rejected') || (e.status == 401)) d.resolve(true);
+    else d.resolve();
   });
-  return $.when.apply($, p).promise();
+  return d.promise();
 };
 
 var makeTemplate = function(ele, schema, tmpls){
@@ -652,6 +666,7 @@ var makeTemplate = function(ele, schema, tmpls){
 
 var checkReload = function(){
   var params = {};
+  if(!_.isUndefined($('body').data('timer'))) clearTimeout($('body').data('timer'));
   if(!_.isUndefined($('body').data('timestamp'))) params = {timestamp:$('body').data('timestamp')};
   $.getJSON('http://'+host+'/REST/nodes/'+encodeURIComponent(node)+'/hasRestarted', params, function(data) {
     if(_.isUndefined($('body').data('timestamp'))){
@@ -1286,11 +1301,32 @@ var setEvents = function(){
   $('body').on('shown.bs.dropdown', '.srchgrp', function () {
     $(this).find('.node').val(null).get(0).focus();
   });
+  $('body').on('shown.bs.dropdown', '.edtgrp', function () {
+    $(this).find('.renamenode').val(nodename).get(0).focus();
+  });
   $('body').on('click', '.uipicker', function (e) {
     e.stopPropagation();
   });
   $('body').on('change', '.uipicker', function (e) {
     window.location.href = $(this).val();
+  });
+  $('body').on('click', '.restartnodsubmit', function (e) {
+    $.get('http://' + host + '/REST/nodes/' + encodeURIComponent(node) + '/restart', function (data) {
+      alert("Restarting, please wait", "success", 0);
+    }).fail(function(e){
+      alert("Error restarting", "danger");
+    });
+  });
+  $('body').on('click', '.deletenodsubmit', function (e) {
+    if(confirm('Are you sure?')) {
+      $.getJSON('http://' + host + '/REST/nodes/' + encodeURIComponent(node) + '/remove?confirm=true', function (data) {
+        alert("Delete successful, redirecting", "success", 0);
+        clearTimers();
+        setTimeout(function() { window.location.href = 'http://' + host; }, 3000);
+      }).fail(function(e){
+        alert("Error deleting", "danger");
+      });
+    }
   });
   $('body').on('shown.bs.dropdown', '.nodel-add .addgrp', function () {
     var ele = this;
@@ -1542,6 +1578,11 @@ var fillPicker = function() {
           $(picker).append('<option value="'+file['path'].replace('content/','')+'">'+file['path'].replace('content/','')+'</option>');
         }
       });
+      if($(picker).has('option').length == 1 ) {
+        $(picker).prop('disabled', true);
+      } else {
+        $(picker).removeAttr('disabled');
+      }
     });
   });
 };
@@ -1703,12 +1744,12 @@ var updateCharts = function(){
 }
 
 var updateLogs = function(){
-  if(!("WebSocket" in window)){
-    console.log('using poll');
+  if(!("WebSocket" in window) || ($('body').data('trypoll'))){
     var url;
     if (typeof $('body').data('seq') === "undefined") url = 'http://' + host + '/REST/nodes/' + encodeURIComponent(node) + '/activity?from=-1';
     else url = 'http://' + host + '/REST/nodes/' + encodeURIComponent(node) + '/activity?from=' + $('body').data('seq');
     $.getJSON(url, function (data) {
+      online();
       if (typeof $('body').data('seq') === "undefined") {
         var noanimate = true;
         $('body').data('seq', -1);
@@ -1722,10 +1763,10 @@ var updateLogs = function(){
           throttleLog(value, noanimate);
         }
       });
+    }).fail(function() {
+      offline();
     }).always(function () {
-      $('body').data('logs', setTimeout(function () {
-        updateLogs();
-      }, 1000));
+      $('body').data('update', setTimeout(function() { updateLogs(); }, 1000));
     });
   } else {
     $.getJSON('http://'+host+'/REST/nodes/' + encodeURIComponent(node), function(data){
@@ -1756,28 +1797,38 @@ var updateLogs = function(){
         socket.onclose = function(){
           console.log('Socket Status: '+socket.readyState+' (Closed)');
           offline();
+          $('body').data('update', setTimeout(function() { updateLogs(); }, 1000));
         }
       } catch(exception){
         console.log('Error: '+exception);
         offline();
+        $('body').data('update', setTimeout(function() { updateLogs(); }, 1000));
       }
     }).fail(function(){
       console.log('Error reading configuration (getJSON failed)');
       offline();
+      $('body').data('update', setTimeout(function() { updateLogs(); }, 1000));
     });
   }
 };
 
 var online = function(socket){
-  $('body').data('timeout', setInterval(function() { socket.send('{}'); }, 1000));
+  if(socket) $('body').data('timeout', setInterval(function() { socket.send('{}'); }, 1000));
+  if(_.isUndefined($('body').data('trypoll'))) {
+    $('body').data('trypoll', false);
+  };
   $('#offline').modal('hide');
 };
 
 var offline = function(){
-  $('.modal').modal('hide');
-  $('#offline').modal('show');
   clearInterval($('body').data('timeout'));
-  $('body').data('update', setTimeout(function() { updateLogs(); }, 1000));
+  if(_.isUndefined($('body').data('trypoll'))) {
+    $('body').data('trypoll', true);
+    alert('Websockets unavailable, trying polling mode');
+  } else {
+    $('.modal').modal('hide');
+    $('#offline').modal('show');
+  }
 };
 
 var throttleLog = function(log, ani){
