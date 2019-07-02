@@ -34,7 +34,6 @@
     "grunt-sftp-deploy": "^0.2.5",
     "grunt-text-replace": "^0.4.0",
     "grunt-twbs": "0.0.5",
-    "jshint": "^2.10.2",
     "mkdirp": "^0.5.1",
     "uglify-js": "^3.6.0",
     "uglifycss": "0.0.29"
