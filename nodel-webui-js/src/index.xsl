@@ -322,7 +322,7 @@
           <%else type=="number" || type=="integer"%>
             <%include ~id=~genid() tmpl="#numberTmpl"/%>
           <%else type=="object"%>
-            <%include tmpl="#objectTmpl"/%>
+            <%include ~id=~genid() tmpl="#objectTmpl"/%>
           <%else type=="array"%>
             <%include ~id=~genid() tmpl="#arrayTmpl"/%>
           <%/if%>
@@ -379,19 +379,25 @@
         <script id="objectTmpl" type="text/x-jsrender">
         <![CDATA[
           <div class="panel panel-default">
-            <%if title%>
-              <div class="panel-heading"><%>title%></div>
-            <%/if%>
-            <div class="panel-body">
-            {^{if ~initObj('<%:~key%>', <%:~key%>)}}
-              {^{for <%:~key%>}}
-                <%props properties sort="prop.order"%>
-                  <%for prop ~key=key%>
-                    <%include tmpl="#switchTmpl"/%>
-                  <%/for%>
-                <%/props%>
-              {{/for}}
-            {{/if}}
+            <div class="panel-heading accordion-toggle collapsed" data-toggle="collapse" data-target="#<%:~id%>_object_group" aria-expanded="false">
+              <%if title%>
+                <div class="panel-title"><h5 class="panel-title"><%>title%></h5></div>
+              <%else%>
+                <div class="panel-title"><h5 class="panel-title"><%>~key%></h5></div>
+              <%/if%>
+            </div>
+            <div id="<%:~id%>_object_group" class="panel-collapse collapse" aria-expanded="false">
+              <div class="panel-body">
+              {^{if ~initObj('<%:~key%>', <%:~key%>)}}
+                {^{for <%:~key%>}}
+                  <%props properties sort="prop.order"%>
+                    <%for prop ~key=key%>
+                      <%include tmpl="#switchTmpl"/%>
+                    <%/for%>
+                  <%/props%>
+                {{/for}}
+              {{/if}}
+              </div>
             </div>
           </div>
         ]]>
