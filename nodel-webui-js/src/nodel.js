@@ -874,8 +874,12 @@ var setEvents = function(){
   $('body').on("click", ".add", function(e) {
     $.observable($.view(this).data[$(this).data('for')]).insert($.view(this).data[$(this).data('for')].length,{});
   });
-  $('body').on("click", ".nodel-console", function(e) {
-    if(!getSelection().toString()) $(this).find('.consoleinput').focus();
+  $('body').on("keydown", ".nodel-console", function(e) {
+    var ele = $(this).find('.consoleinput:not(:focus)');
+    if(ele) {
+      ele.focus();
+      caretToEnd(ele.get(0));
+    }
   });
   $('body').on("keydown", ".nodel-console .consoleinput", function(e) {
     if ((e.keyCode === 13) || (e.keyCode === 38) || (e.keyCode === 40)) {
