@@ -42,9 +42,13 @@
         <link href="v1/img/apple-touch-icon.png" rel="apple-touch-icon"/>
       </head>
       <body>
-        <xsl:if test="//footer">
+        <xsl:if test="//footer or /pages/@core">
+          <xsl:variable name="bodyclass">
+            <xsl:if test="//footer">hasfooter</xsl:if>
+            <xsl:if test="/pages/@core"> core</xsl:if>
+          </xsl:variable>
           <xsl:attribute name="class">
-            <xsl:text>hasfooter</xsl:text>
+            <xsl:value-of select="normalize-space($bodyclass)" />
           </xsl:attribute>
         </xsl:if>
         <!-- main nav -->
