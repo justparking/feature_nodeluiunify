@@ -1090,8 +1090,7 @@
                       </select>
                     </fieldset>
                     <div class="btn-toolbar">
-                      <button type="submit" class="btn btn-success nodeaddsubmitblank">Add</button>
-                      <button type="submit" class="btn btn-success nodeaddsubmitrecipe">Add from recipe</button>
+                      <button type="submit" class="btn btn-success nodeaddsubmit">Add</button>
                     </div>
                   </form>
                 </li>

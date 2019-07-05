@@ -553,16 +553,6 @@ var createDynamicElements = function(){
   return $.when.apply($, p).promise();
 };
 
-/*
-var updateNodelinks = function(e, arg){
-  if(arg.change == "insert") {
-    if(_.isUndefined(nodeList['hosts'][encodr(nodeList.lst[0].host)])) updateHost(nodeList.lst[0].host);
-  }
-};
-
-$.observe(nodeList, 'lst', updateNodelinks);
-*/
-
 var generateHostIcon = function(host) {
   var hash = XXH.h64(host, 0x4e6f64656c).toString(16).padStart(16,'0');
   var options = {
@@ -1316,6 +1306,10 @@ var setEvents = function(){
   $('body').on('change', '.uipicker', function (e) {
     window.location.href = $(this).val();
   });
+  $('body').on('keyup', '.renamenode', function(e) {
+    var charCode = e.charCode || e.keyCode;
+    if(charCode == 13) $(this).closest('.form').find('.renamenodesubmit').click();
+  });
   $('body').on('click', '.renamenodesubmit', function (e) {
     var nodenameraw = $(this).closest('.form').find('.renamenode').val();
     if(nodename != nodenameraw) {
@@ -1351,8 +1345,7 @@ var setEvents = function(){
   });
   $('body').on('shown.bs.dropdown', '.nodel-add .addgrp', function () {
     var ele = this;
-    $(ele).find('.nodeaddsubmitblank').prop('disabled', true);
-    $(ele).find('.nodeaddsubmitrecipe').prop('disabled', true);
+    $(ele).find('.nodeaddsubmit').prop('disabled', true);
     $(ele).find('.recipepicker').empty();
     $(ele).find('.nodenamval').focus();
     $(ele).find('.nodenamval').val(null).get(0).focus();
@@ -1364,47 +1357,28 @@ var setEvents = function(){
           var readme = (typeof value.readme == 'undefined') ? "" : $('<div/>').text(value.readme).html();
           $(picker).append('<option value="' + value.path + '" title="' + readme + '">' + value.path + '</option>');
         });
-        $(ele).find('.nodeaddsubmitblank').prop('disabled', false);
-        $(ele).find('.nodeaddsubmitrecipe').prop('disabled', false);
+        $(ele).find('.nodeaddsubmit').prop('disabled', false);
       } else {
         $(ele).find('.recipepicker').append('<option value="error">-- no recipes available --</option>');
       }
     }).fail(function(){
       $(ele).find('.recipepicker').append('<option value="error">-- no recipes available --</option>');
-      $(ele).find('.nodeaddsubmitblank').prop('disabled', false);
+      $(ele).find('.nodeaddsubmit').prop('disabled', false);
     });
     //return false;
   });
-  $('body').on('click', '.nodeaddsubmitblank', function(e) {
-    var ele = $(this).closest('.base');
-    $(ele).find('.nodeaddsubmitblank').prop('disabled', true);
-    var nodenameraw = $(ele).find('.nodenamval').val();
-    if(nodenameraw) {
-      var nodename = {"value": nodenameraw};
-      $.getJSON('http://' + host + '/REST/newNode', nodename, function() {
-        $(ele).find('.open > button').dropdown('toggle');
-        checkRedirect('http://' + host + '/nodes/' + encodeURIComponent(nodenameraw));
-      }).fail(function(req){
-        if(req.statusText!="abort"){
-          var error = 'Node add failed';
-          if(req.responseText) {
-            var message = JSON.parse(req.responseText);
-            error = error + '<br/>' + message['message'];
-          }
-          alert(error, 'error');
-          $(ele).find('.nodeaddsubmitblank').prop('disabled', false);
-        }
-      });
-    }
-    //return false;
+  $('body').on('keyup', '.nodenamval', function(e) {
+    var charCode = e.charCode || e.keyCode;
+    if(charCode == 13) $(this).closest('form').find('.nodeaddsubmit').click();
   });
-  $('body').on('click', '.nodeaddsubmitrecipe', function(e) {
+  $('body').on('click', '.nodeaddsubmit', function(e) {
     var ele = $(this).closest('.base');
-    $(ele).find('.nodeaddsubmitblank').prop('disabled', true);
+    $(ele).find('.nodeaddsubmit').prop('disabled', true);
     var nodenameraw = $(ele).find('.nodenamval').val();
     var recipeval = $(ele).find('.recipepicker').val();
     if(nodenameraw) {
-      var nodename = {"value": nodenameraw, "base": recipeval};
+      var nodename = {"value": nodenameraw};
+      if(recipeval) nodename["base"] = recipeval;
       $.getJSON('http://' + host + '/REST/newNode', nodename, function() {
         $(ele).find('.open > button').dropdown('toggle');
         checkRedirect('http://' + host + '/nodes/' + encodeURIComponent(nodenameraw));
@@ -1415,8 +1389,8 @@ var setEvents = function(){
             var message = JSON.parse(req.responseText);
             error = error + '<br/>' + message['message'];
           }
-          alert(error, 'error');
-          $(ele).find('.nodeaddsubmitblank').prop('disabled', false);
+          alert(error, 'danger');
+          $(ele).find('.nodeaddsubmit').prop('disabled', false);
         }
       });
     }
@@ -1453,9 +1427,9 @@ var setEvents = function(){
   $('body').on('keydown', function(e) {
     var charCode = e.charCode || e.keyCode;
     if((charCode == 40) || (charCode == 38) || (charCode == 13) || (charCode == 27)) {
-      e.preventDefault();
       var ele = $(this).find('div.nodel-list');
       if(ele.length !== 0){
+        e.preventDefault();
         if((charCode == 40) || (charCode == 38)) {
           var sub = $(ele).find('a.list-group-item.active');
           var nxt;
@@ -1487,7 +1461,11 @@ var setEvents = function(){
             $(ele).find("a.list-group-item").first().addClass('active');
           }
         } else if (charCode == 13) {
-          $(ele).find('a.list-group-item.active').removeClass('active').get(0).click();
+          if((e.target.tagName.toLowerCase() == 'body') || ($(e.target).hasClass('nodelistfilter'))) {
+            if($(ele).find('a.list-group-item.active').length){
+              $(ele).find('a.list-group-item.active').removeClass('active').get(0).click();
+            }
+          }
         } else {
           $(ele).find('a.list-group-item.active').removeClass('active');
         }

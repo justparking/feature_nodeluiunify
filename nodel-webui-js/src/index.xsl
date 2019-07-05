@@ -689,7 +689,7 @@
             <form class="form-inline">
               <fieldset>
                 <div class="form-group">
-                  <input class="form-control" type="text" data-link="flt" placeholder="filter"/>
+                  <input class="form-control nodelistfilter" type="text" data-link="flt" placeholder="filter"/>
                   <select class="form-control" data-link="end">
                     <option value="10">10</option>
                     <option value="20">20</option>
