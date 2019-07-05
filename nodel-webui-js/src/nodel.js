@@ -1589,7 +1589,7 @@ var fillPicker = function() {
           $(picker).append('<option value="'+file['path'].replace('content/','')+'">'+file['path'].replace('content/','')+'</option>');
         }
       });
-      if($(picker).has('option').length == 1 ) {
+      if($(picker).find('option').length == 1 ) {
         $(picker).prop('disabled', true);
       } else {
         $(picker).removeAttr('disabled');
