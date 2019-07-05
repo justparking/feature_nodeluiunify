@@ -1472,6 +1472,12 @@ var setEvents = function(){
       }
     }
   });
+  $('body').on('keydown','input', function(e){
+    var charCode = e.charCode || e.keyCode;
+    if(charCode == 27) {
+      $(this).parents('.dropdown.open').find('.dropdown-toggle').dropdown('toggle');
+    }
+  });
 };
 
 var getAction = function(ele){

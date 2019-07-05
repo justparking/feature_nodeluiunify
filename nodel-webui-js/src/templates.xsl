@@ -1047,7 +1047,7 @@
         <div class="base">
           <div class="addgrp">
             <div class="dropdown">
-              <button class="btn btn-default" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <xsl:attribute name="id">
                   <xsl:text>addgrp_</xsl:text>
                   <xsl:value-of select="generate-id(.)"/>
