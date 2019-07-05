@@ -573,12 +573,32 @@ var updateHost = function(host) {
   var newhost = {};
   newhost.icon = data;
   newhost.reachable = false;
-  newhost[encodr(host)] = newhost;
-  var hosts = $.extend({}, nodeList['hosts'], newhost);
+  newhost.checked = false;
+  var hostobj = {}
+  hostobj[encodr(host)] = newhost;
+  var hosts = $.extend({}, nodeList['hosts'], hostobj);
   $.observable(nodeList).setProperty('hosts', hosts);
-  checkReachable(host).then(function(reachable){
-    if(reachable) $.observable(nodeList['hosts'][encodr(host)]).setProperty('reachable', true);
-  });
+};
+
+var checkHostList = function(){
+  clearTimeout($('body').data('hostlistTimer'));
+  var okey = null;
+  for (var host in nodeList['hosts']) {
+    if (nodeList['hosts'].hasOwnProperty(host)) {
+      if(nodeList['hosts'][host].checked == false){
+        okey = host; 
+        break;
+      }
+    }
+  }
+  if(okey) {
+    host = decodr(okey);
+    checkReachable(host).then(function(reachable){
+      $.observable(nodeList['hosts'][encodr(host)]).setProperty('checked', true);
+      if(reachable) $.observable(nodeList['hosts'][encodr(host)]).setProperty('reachable', true);
+    });
+  }
+  $('body').data('hostlistTimer', setTimeout(function() { checkHostList(); }, 1000));
 };
 
 var updateNodelist = function(standalone=false){
@@ -588,11 +608,12 @@ var updateNodelist = function(standalone=false){
   nodeListreq = $.getJSON('http://'+host+'/REST/nodeURLs', function(data) {
     if(standalone) online();
     for (i=0; i<data.length; i++) {
+      var ind = -1;
       if(nodeList['lst']) {
-        var ind = nodeList['lst'].findIndex(function(_ref) {
+        ind = nodeList['lst'].findIndex(function(_ref) {
           return (_ref.node == data[i].node) && (_ref.host == getHost(data[i].address));
         });
-      } else ind = -1;
+      }
       if(ind == -1) {
         var node = data[i];
         node.host = getHost(data[i].address);
@@ -601,17 +622,19 @@ var updateNodelist = function(standalone=false){
       }
     }
     for (i=0; i<nodeList['lst'].length; i++) {
+      var ind = -1;
       if(data){
-        var ind = data.findIndex(function(_ref) {
+        ind = data.findIndex(function(_ref) {
           return (_ref.node == nodeList['lst'][i].node) && (getHost(_ref.address) == nodeList['lst'][i].host);
         });
-      } else ind = -1;
+      }
       if(ind == -1) $.observable(nodeList['lst']).remove(i);
     }
   }).fail(function(){
     if(standalone) offline();
   }).always(function(){
     $('body').data('nodelistTimer', setTimeout(function() { updateNodelist(standalone); }, 30000));
+    if(_.isUndefined($('body').data('hostlistTimer'))) checkHostList();
     d.resolve();
   });
   return d.promise();
