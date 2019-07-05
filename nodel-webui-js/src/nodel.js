@@ -329,12 +329,14 @@ $(function() {
     });
   } else {
     $.when(createDynamicElements().then(function(){
+      updatepadding();
       updateNodelist(true).then(function(){
         setEvents();
         updateLogForm();
         updateCharts();
         initToolkit();
         $('*[data-nav]').first().trigger('click');
+        $('.nodelistfilter').focus();
       });
     }));
   }
