@@ -976,7 +976,7 @@ var setEvents = function(){
       }
     } else if ((charCode != 9) && (charCode != 27)) {
       if(e.ctrlKey || e.altKey) return true;
-      var srchstr = $(this).val();
+      var srchstr = $(this).val().replace(new RegExp('[.\\\\+*?\\[\\^\\]$(){}=!<>|:\\-]', 'g'), '\\$&');
       var data = $.grep(nodeList.lst, function(v) {
         return v.node.search(new RegExp(srchstr, "ig")) !== -1;
       });
@@ -1024,7 +1024,7 @@ var setEvents = function(){
       }
     } else if ((charCode != 9) && (charCode != 27)) {
       if(e.ctrlKey || e.altKey) return true;
-      var srchstr = $(this).val();
+      var srchstr = $(this).val().replace(new RegExp('[.\\\\+*?\\[\\^\\]$(){}=!<>|:\\-]', 'g'), '\\$&');
       var ele = this;
       var type = $(this).hasClass("event") ? 'events' : 'actions';
       var node = $.view(this).data.node;
