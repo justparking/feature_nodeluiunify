@@ -605,13 +605,6 @@
         </script>
         <script id="actsigTmplItem" type="text/x-jsrender">
         <![CDATA[
-          {{if title}}
-            <div class="row">
-              <div class="col-sm-12">
-                <h6>{{>title}}</h6>
-              </div>
-            </div>
-          {{/if}}
           <div class="row">
             {{if action}}
               <div class="col-sm-6">
