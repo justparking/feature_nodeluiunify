@@ -297,12 +297,12 @@ $(function() {
   if(navigator.issmart){
     $('head').append('<style>.fixed-table-body{overflow-y: hidden;} body{zoom: 140%}</style>');
   };
-  updatepadding();
   getColours();
   // get the node name
   if(window.location.pathname.split( '/' )[1]=="nodes") node = decodeURIComponent(window.location.pathname.split( '/' )[2].replace(/\+/g, '%20'));
   if(node) {
     getNodeDetails().then(function(){
+      updatepadding();
       $.when(createDynamicElements().then(function(){
         convertNames();
         updateConsoleForm();
