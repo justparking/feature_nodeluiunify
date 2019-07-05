@@ -879,19 +879,24 @@ var setEvents = function(){
     $.observable($.view(this).data[$(this).data('for')]).insert($.view(this).data[$(this).data('for')].length,{});
   });
   $('body').on("keydown", ".nodel-console", function(e) {
-    var ele = $(this).find('.consoleinput:not(:focus)');
-    if(ele) {
-      ele.focus();
-      caretToEnd(ele.get(0));
+    var charCode = e.charCode || e.keyCode;
+    if ((charCode !== 16) && (charCode !== 17) && (charCode !== 18) && (!e.ctrlKey) && (!e.shiftKey) && (!e.altKey)) {
+      var ele = $(this).find('.consoleinput').not(':focus');
+      if(ele) {
+        ele.focus();
+        caretToEnd(ele.get(0));
+      }
     }
   });
   $('body').on("keydown", ".nodel-console .consoleinput", function(e) {
-    if ((e.keyCode === 13) || (e.keyCode === 38) || (e.keyCode === 40)) {
+    var charCode = e.charCode || e.keyCode;
+    if ((charCode === 13) || (charCode === 38) || (charCode === 40)) {
       return false;
     }
   });
   $('body').on("keyup", ".nodel-console .consoleinput", function(e) {
-    if (e.keyCode === 13) {
+    var charCode = e.charCode || e.keyCode;
+    if (charCode === 13) {
       var text = $(this).text();
       if(text){
         $(this).empty();
@@ -905,15 +910,15 @@ var setEvents = function(){
         $.data(this, 'current', -1);
         $.data(this, 'history').unshift(text);
       }
-    } else if ((e.keyCode === 38) || (e.keyCode === 40)) {
+    } else if ((charCode === 38) || (charCode === 40)) {
       if(!_.isUndefined($.data(this, 'history'))) {
         if(_.isUndefined($.data(this, 'current'))) $.data(this, 'current', -1);
         var current = $.data(this, 'current');
-        if ((e.keyCode === 38) && (current+1 < $.data(this, 'history').length)) {
+        if ((charCode === 38) && (current+1 < $.data(this, 'history').length)) {
           $.data(this, 'current', current+1);
           $(this).text(($.data(this, 'history')[current+1]));
           caretToEnd($(this)[0]);
-        } else if (e.keyCode === 40) {
+        } else if (charCode === 40) {
           if(current > 0) {
             $.data(this, 'current', current-1);
             $(this).text(($.data(this, 'history')[current-1]));
