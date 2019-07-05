@@ -453,6 +453,8 @@
           <div class="form-group">
             <%if title%>
               <label data-link="for{:~idxid(~idx,'<%:~id%>_field_<%:~key%>')}"><%>title%></label>
+            <%else%>
+              <label data-link="for{:~idxid(~idx,'<%:~id%>_field_<%:~key%>')}"><%>~key%></label>
             <%/if%>
             <%if enum%>
               <select title="<%>desc%>" class="form-control" placeholder="<%>hint%>" data-link="{:<%:~key%>:} id{:~idxid(~idx,'<%:~id%>_field_<%:~key%>')}">
@@ -478,6 +480,8 @@
           <div class="form-group">
             <%if title%>
               <label data-link="for{:~idxid(~idx,'<%:~id%>_field_<%:~key%>')}"><%>title%></label>
+            <%else%>
+              <label data-link="for{:~idxid(~idx,'<%:~id%>_field_<%:~key%>')}"><%>~key%></label>
             <%/if%>
             <input title="<%>desc%>" type="number" class="form-control" placeholder="<%>hint%>" data-link="{intToStr:<%:~key%>:strToInt} id{:~idxid(~idx,'<%:~id%>_field_<%:~key%>')}"/>
           </div>
@@ -488,6 +492,8 @@
           <div>
             <%if title%>
               <label data-link="for{:~idxid(~idx,'<%:~id%>_field_<%:~key%>_group')}"><%>title%></label>
+            <%else%>
+              <label data-link="for{:~idxid(~idx,'<%:~id%>_field_<%:~key%>_group')}"><%>~key%></label>
             <%/if%>
             <div class="checkbox" data-link="id{:~idxid(~idx,'<%:~id%>_field_<%:~key%>_group')}">
               <label data-link="for{:~idxid(~idx,'<%:~id%>_field_<%:~key%>')}">
