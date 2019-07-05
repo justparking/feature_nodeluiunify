@@ -301,6 +301,7 @@ $(function() {
   // get the node name
   if(window.location.pathname.split( '/' )[1]=="nodes") node = decodeURIComponent(window.location.pathname.split( '/' )[2].replace(/\+/g, '%20'));
   if(node) {
+    $('.navbar-brand a').attr("href", window.document.location.protocol+"//"+host);
     getNodeDetails().then(function(){
       updatepadding();
       $.when(createDynamicElements().then(function(){
@@ -328,6 +329,7 @@ $(function() {
       }));
     });
   } else {
+    $('.navbar-brand a').attr("href", "diagnostics.xml");
     $.when(createDynamicElements().then(function(){
       updatepadding();
       updateNodelist(true).then(function(){

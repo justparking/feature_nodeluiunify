@@ -74,14 +74,16 @@
                 <span class="icon-bar"></span>
               </button>
               <div class="navbar-brand">
-                <xsl:choose>
-                <xsl:when test="/pages/@logo">
-                  <img src="{/pages/@logo}"/>
-                </xsl:when>
-                <xsl:otherwise>
-                  <img src="v1/img/logo.png"/>
-                </xsl:otherwise>
-                </xsl:choose>
+                <a>
+                  <xsl:choose>
+                    <xsl:when test="/pages/@logo">
+                      <img src="{/pages/@logo}"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                      <img src="v1/img/logo.png"/>
+                    </xsl:otherwise>
+                  </xsl:choose>
+                </a>
                 <xsl:if test="/pages/header/nodel/@type='hosticon'">
                   <span class="nodel-icon"><a><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"/></a></span>
                 </xsl:if>
