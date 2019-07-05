@@ -1327,7 +1327,7 @@ var setEvents = function(){
   });
   $('body').on('click', '.restartnodesubmit', function (e) {
     $.get('http://' + host + '/REST/nodes/' + encodeURIComponent(node) + '/restart', function (data) {
-      alert("Restarting, please wait", "success", 0);
+      alert("Restarting, please wait", "success", 7000);
     }).fail(function(e){
       alert("Error restarting", "danger");
     });
