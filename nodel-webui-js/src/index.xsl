@@ -662,7 +662,7 @@
                   <span class="logicon"></span>
                   <span class="logtitle">{^{>alias}}</span><span class="logtimestamp"> - {^{>~nicetime(timestamp)}}</span>
                   {^{if arg}}
-                    <span class="logarg">{^{>~sanitize(arg, 150)}}</span>
+                    <span class="logarg">{^{:~jsonhighlight(~sanitize(arg, 150))}}</span>
                   {{/if}}
                 </li>
               {{/for}}
