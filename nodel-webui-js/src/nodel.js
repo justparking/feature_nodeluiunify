@@ -681,6 +681,7 @@ var makeTemplate = function(ele, schema, tmpls){
   if(!_.isUndefined($(ele).data('btnfaicon')) && $(ele).data('btnfaicon') !== '') extschema = $.extend({}, {"btnfaicon": $(ele).data('btnfaicon')}, extschema);
   if(!_.isUndefined($(ele).data('btntext'))) extschema = $.extend({}, {"btntext": $(ele).data('btntext')}, extschema);
   if(!_.isUndefined($(ele).data('btntop'))) extschema = $.extend({}, {"btntop": $(ele).data('btntop')}, extschema);
+  if(!_.isUndefined($(ele).data('disabled'))) extschema = $.extend({}, {"disabled": true}, extschema);
   if(!_.isUndefined($(ele).data('notitle')) && $(ele).data('notitle') == true) extschema.title = '';
   // generate
   //console.log(extschema);

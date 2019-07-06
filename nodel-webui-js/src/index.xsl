@@ -333,7 +333,7 @@
           <form data-form="true" class="base" autocomplete="off">
             <fieldset>
               <%if btntop%>
-                <button type="submit" class="btn btn-default btn-top">
+                <button type="submit" class="btn btn-default btn-top" title="<%:btntitle%>"<%if disabled%> disabled<%/if%>>
                   <%>btntitle%>
                   <%if btnfaicon%>
                     <span class="glyphicon glyphicon-<%:btnicon%>" aria-hidden="true"></span>
@@ -362,7 +362,7 @@
                 <%/if%>  
               <%/for%>
               <%if !btntop%>
-                <button type="submit" class="btn btn-default" title="<%:btntitle%>">
+                <button type="submit" class="btn btn-default" title="<%:btntitle%>"<%if disabled%> disabled<%/if%>>
                   <%>btntext%>
                   <%if btnicon%>
                     <span class="glyphicon glyphicon-<%:btnicon%>" aria-hidden="true"></span>
