@@ -507,10 +507,12 @@ div[data-nodel="log"] ul {
     padding-left: 20px;
     .logtimestamp {
       color: @gray-light;
-      font-size: 0.8em;
+      font-size: @font-size-xxsmall;
     }
     .logarg {
       display: block;
+      font-size: @font-size-xsmall;
+      font-family: "Roboto Mono", "Lucida Console", Monaco, monospace;
     }
     .logicon {
       opacity: 0.2;
@@ -549,7 +551,7 @@ div.nodel-console, div.nodel-serverlog {
   border-radius: @border-radius-base;
   overflow: auto;
   resize: vertical;
-  font-family: "Lucida Console", Monaco, monospace;
+  font-family: "Roboto Mono","Lucida Console", Monaco, monospace;
   font-size: @font-size-xsmall;
   padding: 0 5px;
   & div.consoledetail {
@@ -692,6 +694,10 @@ div.nodel-charts {
       .CodeMirror-cursors {
         opacity: 0;
       }
+    }
+    .CodeMirror {
+      font-family: "Roboto Mono", "Lucida Console", Monaco, monospace;
+      font-size: @font-size-xsmall;
     }
   }
   .flexgrow {

@@ -14,6 +14,12 @@ module.exports = function(grunt) {
               styles: [
                 100, 300, 400, 500, 700, 900
               ]
+            },
+            {
+              family: 'Roboto Mono',
+              styles: [
+                100, 300, 400, 500, 700
+              ]
             }
           ]
         }
