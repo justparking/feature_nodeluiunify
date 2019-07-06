@@ -1508,6 +1508,11 @@ var setEvents = function(){
       }
     }
   });
+  $('body').on('click','.nodel-list .listmore', function(){
+    var ele = $(this).closest('.base').find('.nodelistshow');
+    $(ele).find('option:selected').prop('selected', false).next().prop('selected', true);
+    $(ele).trigger('change');
+  });
   $('body').on('keydown','input', function(e){
     var charCode = e.charCode || e.keyCode;
     if(charCode == 27) {

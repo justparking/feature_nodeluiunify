@@ -686,7 +686,7 @@
             <div>
               {^{for logs}}
                 <div data-link="class{:'consoletype_'+level}"><span class="consoletimestamp">{^{>~nicetime(timestamp,true)}}</span>&nbsp;<span class="consolecomment">{^{>message}}</span></div>
-                {{if error}}
+                {^{if error}}
                   <div data-link="class{:'consoletype_'+level+ ' consoledetail'}"><span class="consolecomment">{^{>error}}</span></div>
                 {{/if}}
               {{/for}}
@@ -701,7 +701,7 @@
               <fieldset>
                 <div class="form-group">
                   <input class="form-control nodelistfilter" type="text" data-link="flt" placeholder="filter"/>
-                  <select class="form-control" data-link="end">
+                  <select class="form-control nodelistshow" data-link="end">
                     <option value="10">10</option>
                     <option value="20">20</option>
                     <option value="50">50</option>
@@ -716,6 +716,9 @@
               {^{for lst filter=~srcflt mapDepends='flt' srch='node' sort='node' end=end}}
                 <a class="list-group-item" data-link="href{:address} class{:~root^hosts[~encodr(host)].reachable ? 'list-group-item' : 'list-group-item unreachable'}"><img src="data:image/svg+xml;base64,{{:~root^hosts[~encodr(host)].icon}}"/>&nbsp;{^{:~highlight(node,~root.flt)}}</a>
               {{/for}}
+              {^{if end <= lst.length}}
+                <a class="list-group-item listmore">more</a>
+              {{/if}}
             </div>
           </div>
         ]]>
