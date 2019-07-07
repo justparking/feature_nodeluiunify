@@ -159,6 +159,13 @@
                               </div>
                             </li>
                             <li class="form">
+                              <div class="checkbox">
+                                <label>
+                                  <input type="checkbox" class="advancedmode"/>Override signals
+                                </label>
+                              </div>
+                            </li>
+                            <li class="form">
                               <div>
                                 <div class="btn-group btn-group-justified">
                                   <a class="btn btn-danger deletenodesubmit" role="button">Delete node</a>
@@ -333,7 +340,7 @@
           <form data-form="true" class="base" autocomplete="off">
             <fieldset>
               <%if btntop%>
-                <button type="submit" class="btn btn-default btn-top" title="<%:btntitle%>"<%if disabled%> disabled<%/if%>>
+                <button type="submit" class="btn btn-default btn-top<%if disabled%> disabled<%/if%>" title="<%:btntitle%>">
                   <%>btntitle%>
                   <%if btnfaicon%>
                     <span class="glyphicon glyphicon-<%:btnicon%>" aria-hidden="true"></span>
@@ -362,7 +369,7 @@
                 <%/if%>  
               <%/for%>
               <%if !btntop%>
-                <button type="submit" class="btn btn-default" title="<%:btntitle%>"<%if disabled%> disabled<%/if%>>
+                <button type="submit" class="btn btn-default<%if disabled%> disabled<%/if%>" title="<%:btntitle%>">
                   <%>btntext%>
                   <%if btnicon%>
                     <span class="glyphicon glyphicon-<%:btnicon%>" aria-hidden="true"></span>

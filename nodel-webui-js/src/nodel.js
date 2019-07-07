@@ -116,7 +116,7 @@ var copyToClipboard = function(str) {
   el.value = str;
   document.body.appendChild(el);
   el.select();
-  console.log(document.execCommand('copy'));
+  document.execCommand('copy');
   document.body.removeChild(el);
 };
 
@@ -884,11 +884,21 @@ var setEvents = function(){
   $('body').on('submit', function (e) {
     e.preventDefault();
   });
+  $('body').on('change','.advancedmode', function(){
+    if($(this).is(":checked")) {
+      $('.nodel-actsig').find('.nodel-schema-event button[type="submit"].disabled').removeClass('disabled');
+    } else {
+      $('.nodel-actsig').find('.nodel-schema-event button[type="submit"]').addClass('disabled');
+    }
+  });
   $('body').on('click','*[data-form] button[type="submit"]', function (e) {
     if(e.shiftKey) {
       e.preventDefault();
       copyToClipboard($(this).attr('title'));
       alert('Copied to clipboard');
+    }
+    if($(this).hasClass('disabled')) {
+      e.preventDefault();
     }
   });
   $('body').on('submit','*[data-form]', function (e) {
