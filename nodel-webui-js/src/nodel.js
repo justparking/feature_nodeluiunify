@@ -195,6 +195,7 @@ navigator.issmart = (function(){
 var updatepadding = function() {
   $('body').css('padding-top',  $('nav.navbar-fixed-top').outerHeight() + 20);
   $('body.hasfooter').css('padding-bottom',  $('footer.navbar-fixed-bottom').outerHeight() + 50);
+  $('body > div.alert').css('top',  $('nav.navbar-fixed-top').outerHeight() + 8);
 };
 
 var updatemeter = function(el, val) {
