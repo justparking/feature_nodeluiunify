@@ -720,10 +720,10 @@
               </fieldset>
             </form>
             <div class="list-group list-group-basic">
-              {^{for lst filter=~srcflt mapDepends='flt' srch='node' sort='node' end=end}}
+              {^{for lst filter=~srcflt mapDepends='flt' srch='node' sort='node' end=end sorted=~flst}}
                 <a class="list-group-item" data-link="href{:address} class{:~root^hosts[~encodr(host)].reachable ? 'list-group-item' : 'list-group-item unreachable'}"><img src="data:image/svg+xml;base64,{{:~root^hosts[~encodr(host)].icon}}"/>&nbsp;{^{:~highlight(node,~root.flt)}}</a>
               {{/for}}
-              {^{if end <= lst.length}}
+              {^{if (~flst) && (end <= ~flst.length)}}
                 <a class="list-group-item listmore">more</a>
               {{/if}}
             </div>
