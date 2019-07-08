@@ -8,6 +8,11 @@
   </header>
   <page title='Activity'>
     <row>
+      <column>
+        <nodel type="description"/>
+      </column>
+    </row>
+    <row>
       <column sm="8" push="4">
         <title>Actions &amp; Signals</title>
         <nodel type="actsig"/>
