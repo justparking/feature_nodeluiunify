@@ -329,7 +329,7 @@
           <%else type=="number" || type=="integer"%>
             <%include ~id=~genid() tmpl="#numberTmpl"/%>
           <%else type=="object"%>
-            <%include ~id=~genid() tmpl="#objectTmpl"/%>
+            <%include ~id=~genid() tmpl="#objectTmpl" ~inobj=true/%>
           <%else type=="array"%>
             <%include ~id=~genid() tmpl="#arrayTmpl"/%>
           <%/if%>
@@ -353,7 +353,7 @@
               <%if title%>
                 <h6 class="text-break"><%>title%></h6>
               <%/if%>
-              <%for schema ~key=key?key:''%>
+              <%for schema ~key=key?key:'' ~nokeytitle=nokeytitle%>
                 <%if type=="object"%>
                   {^{if ~initObj('<%:~key%>', <%:~key%>)}}
                     {^{for <%:~key%>}}
@@ -366,7 +366,7 @@
                   {{/if}}
                 <%else%>
                   <%include tmpl="#switchTmpl"/%>
-                <%/if%>  
+                <%/if%>
               <%/for%>
               <%if !btntop%>
                 <button type="submit" class="btn btn-default<%if disabled%> disabled<%/if%>" title="<%:btntitle%>">
@@ -460,7 +460,7 @@
           <div class="form-group">
             <%if title%>
               <label data-link="for{:~idxid(~idx,'<%:~id%>_field_<%:~key%>')}"><%>title%></label>
-            <%else%>
+            <%else ~inobj || !~nokeytitle%>
               <label data-link="for{:~idxid(~idx,'<%:~id%>_field_<%:~key%>')}"><%>~key%></label>
             <%/if%>
             <%if enum%>
@@ -487,7 +487,7 @@
           <div class="form-group">
             <%if title%>
               <label data-link="for{:~idxid(~idx,'<%:~id%>_field_<%:~key%>')}"><%>title%></label>
-            <%else%>
+            <%else ~inobj || !~nokeytitle%>
               <label data-link="for{:~idxid(~idx,'<%:~id%>_field_<%:~key%>')}"><%>~key%></label>
             <%/if%>
             <input title="<%>desc%>" type="number" class="form-control" placeholder="<%>hint%>" data-link="{intToStr:<%:~key%>:strToInt} id{:~idxid(~idx,'<%:~id%>_field_<%:~key%>')}"/>
@@ -499,7 +499,7 @@
           <div>
             <%if title%>
               <label data-link="for{:~idxid(~idx,'<%:~id%>_field_<%:~key%>_group')}"><%>title%></label>
-            <%else%>
+            <%else ~inobj || !~nokeytitle%>
               <label data-link="for{:~idxid(~idx,'<%:~id%>_field_<%:~key%>_group')}"><%>~key%></label>
             <%/if%>
             <div class="checkbox" data-link="id{:~idxid(~idx,'<%:~id%>_field_<%:~key%>_group')}">

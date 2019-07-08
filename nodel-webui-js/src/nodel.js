@@ -479,11 +479,11 @@ var createDynamicElements = function(){
         $.each(actions, function(i, act){
           act.title = _.isUndefined(act.title) ? act.name: act.title;
           var schema = {"type":"object", "properties": {"arg": act.schema }};
-          ale = {'action': {'type': 'action', 'name': act.name, 'target':'actions/'+act.name+'/call', 'schema':JSON.stringify(schema), 'btntext': act.title, 'btntitle': act.name, 'notitle': true}, 'order': act.order, 'title': act.title};
+          ale = {'action': {'type': 'action', 'name': act.name, 'target':'actions/'+act.name+'/call', 'schema':JSON.stringify(schema), 'btntext': act.title, 'btntitle': act.name, 'notitle': true, 'nokeytitle': true}, 'order': act.order, 'title': act.title};
           if(!_.isUndefined(events[i])) {
             events[i].title = _.isUndefined(events[i].title) ? events[i].name: events[i].title;
             var schema = {"type":"object", "properties": {"arg": events[i].schema }};
-            $.extend(ale, {'event': {'type': 'event', 'name': events[i].name, 'target':'events/'+events[i].name+'/emit', 'schema':JSON.stringify(schema), 'btntext': events[i].title, 'btntitle': events[i].name, 'notitle': true}});
+            $.extend(ale, {'event': {'type': 'event', 'name': events[i].name, 'target':'events/'+events[i].name+'/emit', 'schema':JSON.stringify(schema), 'btntext': events[i].title, 'btntitle': events[i].name, 'notitle': true, 'nokeytitle': true}});
             delete events[i];
           }
           if(act.group) {
@@ -494,7 +494,7 @@ var createDynamicElements = function(){
         $.each(events, function(i, evt){
           evt.title = _.isUndefined(evt.title) ? evt.name: evt.title;
           var schema = {"type":"object", "properties": {"arg": evt.schema }};
-          eve = {'event': {'type': 'event', 'name': evt.name, 'target':'events/'+evt.name+'/emit', 'schema':JSON.stringify(schema), 'btntext': evt.title, 'btntitle': evt.name, 'notitle': true}, 'order': evt.order, 'title': evt.title};
+          eve = {'event': {'type': 'event', 'name': evt.name, 'target':'events/'+evt.name+'/emit', 'schema':JSON.stringify(schema), 'btntext': evt.title, 'btntitle': evt.name, 'notitle': true, 'nokeytitle': true}, 'order': evt.order, 'title': evt.title};
           if(evt.group) {
             if(_.isUndefined(forms['groups'][evt.group])) forms['groups'][evt.group] = [];
             forms['groups'][evt.group].push(eve);
@@ -686,6 +686,7 @@ var makeTemplate = function(ele, schema, tmpls){
   if(!_.isUndefined($(ele).data('btntext'))) extschema = $.extend({}, {"btntext": $(ele).data('btntext')}, extschema);
   if(!_.isUndefined($(ele).data('btntop'))) extschema = $.extend({}, {"btntop": $(ele).data('btntop')}, extschema);
   if(!_.isUndefined($(ele).data('disabled'))) extschema = $.extend({}, {"disabled": true}, extschema);
+  if(!_.isUndefined($(ele).data('nokeytitle'))) extschema = $.extend({}, {"nokeytitle": true}, extschema);
   if(!_.isUndefined($(ele).data('notitle')) && $(ele).data('notitle') == true) extschema.title = '';
   // generate
   //console.log(extschema);
