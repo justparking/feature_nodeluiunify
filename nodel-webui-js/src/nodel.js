@@ -386,7 +386,7 @@ var getNodeDetails = function(){
   var d = $.Deferred();
   $.getJSON('http://'+host+'/REST/nodes/'+encodeURIComponent(node)+'/', function(data) {
     if(!$('.navbar-brand #title').text()) $('.navbar-brand #title').text(getSimpleName(data.name));
-    $('.nodel-description').html(converter.makeHtml(data.desc));
+    if(data.desc) $('.nodel-description').html(converter.makeHtml(data.desc));
     $('title').text(getSimpleName(data.name));
     nodename = data.name;
     nodedesc = data.desc;
