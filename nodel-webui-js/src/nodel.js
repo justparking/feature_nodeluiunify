@@ -610,22 +610,46 @@ var updateHost = function(host) {
 var checkHostList = function(){
   clearTimeout($('body').data('hostlistTimer'));
   var okey = null;
-  for (var host in nodeList['hosts']) {
-    if (nodeList['hosts'].hasOwnProperty(host)) {
-      if(nodeList['hosts'][host].checked == false){
-        okey = host; 
-        break;
+  var ele = $('.nodel-list .base');
+  if(ele) {
+    var flst = $.view(ele).ctxPrm('flst');
+    if(flst) {
+      var flstl = flst.slice(0,$.view(ele).data['end']);
+      for (var host in nodeList['hosts']) {
+        if (nodeList['hosts'].hasOwnProperty(host)) {
+          if(nodeList['hosts'][host].checked == false){
+            var dhost = decodr(host);
+            var ind = flstl.findIndex(function(_ref) {
+              return (_ref.host == dhost);
+            });
+            if(ind > -1){
+              okey = host; 
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+  if(!okey) {
+    for (var host in nodeList['hosts']) {
+      if (nodeList['hosts'].hasOwnProperty(host)) {
+        if(nodeList['hosts'][host].checked == false){
+          okey = host; 
+          break;
+        }
       }
     }
   }
   if(okey) {
-    host = decodr(okey);
-    checkReachable(host).then(function(reachable){
-      $.observable(nodeList['hosts'][encodr(host)]).setProperty('checked', true);
-      if(reachable) $.observable(nodeList['hosts'][encodr(host)]).setProperty('reachable', true);
+    checkReachable(decodr(okey)).then(function(reachable){
+      $.observable(nodeList['hosts'][okey]).setProperty('checked', true);
+      if(reachable) $.observable(nodeList['hosts'][okey]).setProperty('reachable', true);
+      $('body').data('hostlistTimer', setTimeout(function() { checkHostList(); }, 1000));
     });
+  } else {
+    $('body').data('hostlistTimer', setTimeout(function() { checkHostList(); }, 1000));
   }
-  $('body').data('hostlistTimer', setTimeout(function() { checkHostList(); }, 200));
 };
 
 var updateNodelist = function(standalone=false){
