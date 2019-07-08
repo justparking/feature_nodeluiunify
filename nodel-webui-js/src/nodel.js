@@ -617,7 +617,7 @@ var checkHostList = function(){
       if(reachable) $.observable(nodeList['hosts'][encodr(host)]).setProperty('reachable', true);
     });
   }
-  $('body').data('hostlistTimer', setTimeout(function() { checkHostList(); }, 1000));
+  $('body').data('hostlistTimer', setTimeout(function() { checkHostList(); }, 200));
 };
 
 var updateNodelist = function(standalone=false){
