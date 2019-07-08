@@ -346,12 +346,11 @@ $(function() {
           // init toolkit
           initToolkit();
         });
-        fillPicker();
+        fillUIPicker();
         checkReload();
       }));
     });
   } else {
-    $('.navbar-brand a').attr("href", "diagnostics.xml");
     $.when(createDynamicElements().then(function(){
       updatepadding();
       updateNodelist(true).then(function(){
@@ -386,8 +385,9 @@ var clearTimers = function(){
 var getNodeDetails = function(){
   var d = $.Deferred();
   $.getJSON('http://'+host+'/REST/nodes/'+encodeURIComponent(node)+'/', function(data) {
-    if(!$('.navbar-brand #title').text()) $('.navbar-brand #title').text(data.name);
+    if(!$('.navbar-brand #title').text()) $('.navbar-brand #title').text(getSimpleName(data.name));
     $('.navbar-brand #title').attr('title', data.desc);
+    $('title').text(getSimpleName(data.name));
     nodename = data.name;
     nodedesc = data.desc;
   }).always(function(){
@@ -443,7 +443,8 @@ var initEditor = function(){
       }
     });
     $(this).data('editor', editor);
-    $('.script_default').trigger('click');
+    $(ele).closest('.base').find('.picker').data('goto','script.py');
+    fillPicker();
   });
 };
 
@@ -579,6 +580,10 @@ var createDynamicElements = function(){
   return $.when.apply($, p).promise();
 };
 
+var getSimpleName = function(name){
+  return new RegExp(/^(.+?)(?:\(| \(|$)/, "ig").exec(name)[1];
+};
+
 var generateHostIcon = function(host) {
   var hash = XXH.h64(host, 0x4e6f64656c).toString(16).padStart(16,'0');
   var options = {
@@ -631,14 +636,16 @@ var updateNodelist = function(standalone=false){
     if(standalone) online();
     for (i=0; i<data.length; i++) {
       var ind = -1;
+      data[i].host = getHost(data[i].address);
+      data[i].name = data[i].node;
+      data[i].node = getSimpleName(data[i].node);
       if(nodeList['lst']) {
         ind = nodeList['lst'].findIndex(function(_ref) {
-          return (_ref.node == data[i].node) && (_ref.host == getHost(data[i].address));
+          return (_ref.name == data[i].name) && (_ref.host == data[i].host);
         });
       }
       if(ind == -1) {
         var node = data[i];
-        node.host = getHost(data[i].address);
         if(_.isUndefined(nodeList['hosts'][encodr(node.host)])) updateHost(node.host);
         $.observable(nodeList['lst']).insert(0, node);
       }
@@ -647,7 +654,7 @@ var updateNodelist = function(standalone=false){
       var ind = -1;
       if(data){
         ind = data.findIndex(function(_ref) {
-          return (_ref.node == nodeList['lst'][i].node) && (getHost(_ref.address) == nodeList['lst'][i].host);
+          return (_ref.name == nodeList['lst'][i].name) && (_ref.host == nodeList['lst'][i].host);
         });
       }
       if(ind == -1) $.observable(nodeList['lst']).remove(i);
@@ -1301,6 +1308,7 @@ var setEvents = function(){
         $(ele).find('.picker').val('');
         alert("File deleted: "+path);
         fillPicker();
+        fillUIPicker();
       }).fail(function(e){
         alert("Error deleting file: "+path, "danger");
       }).always(function(){
@@ -1334,6 +1342,7 @@ var setEvents = function(){
         alert('File added');
         $(ele).find('.picker').data('goto', path);
         fillPicker();
+        fillUIPicker();
       }}).fail(function (req) {
         if (req.statusText != "abort") {
           var error = 'File add failed';
@@ -1388,7 +1397,7 @@ var setEvents = function(){
         $.getJSON('http://' + host + '/REST/nodes/' + encodeURIComponent(node) + '/rename', nodename, function (data) {
           alert("Rename successful, redirecting", "success", 0);
           clearTimers();
-          checkRedirect('http://' + host + '/nodes/' + encodeURIComponent(nodenameraw));
+          checkRedirect('http://' + host + '/nodes/' + encodeURIComponent(getSimpleName(nodenameraw)));
         }).fail(function(e){
           alert("Error renaming", "danger");
         });
@@ -1451,7 +1460,7 @@ var setEvents = function(){
       if(recipeval) nodename["base"] = recipeval;
       $.getJSON('http://' + host + '/REST/newNode', nodename, function() {
         $(ele).find('.open > button').dropdown('toggle');
-        checkRedirect('http://' + host + '/nodes/' + encodeURIComponent(nodenameraw));
+        checkRedirect('http://' + host + '/nodes/' + encodeURIComponent(getSimpleName(nodenameraw)));
       }).fail(function(req){
         if(req.statusText!="abort"){
           var error = 'Node add failed';
@@ -1642,6 +1651,9 @@ var fillPicker = function() {
       }
     });
   });
+};
+
+var fillUIPicker = function() {
   // fill UI file list
   var pickers = $('select.uipicker');
   $.each(pickers, function(i,picker) {

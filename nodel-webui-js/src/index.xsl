@@ -75,6 +75,11 @@
               </button>
               <div class="navbar-brand">
                 <a>
+                  <xsl:if test="/pages/header/@destination">
+                    <xsl:attribute name="href">
+                      <xsl:value-of select="/pages/header/@destination"/>
+                    </xsl:attribute>
+                  </xsl:if>
                   <xsl:choose>
                     <xsl:when test="/pages/@logo">
                       <img src="{/pages/@logo}"/>
@@ -669,7 +674,7 @@
                   <span class="logicon"></span>
                   <span class="logtitle">{^{>alias}}</span><span class="logtimestamp"> - {^{>~nicetime(timestamp)}}</span>
                   {^{if arg}}
-                    <span class="logarg">{^{:~jsonhighlight(~sanitize(arg, 150))}}</span>
+                    <span class="logarg">{^{:~jsonhighlight(~sanitize(arg, 250))}}</span>
                   {{/if}}
                 </li>
               {{/for}}
@@ -721,7 +726,7 @@
             </form>
             <div class="list-group list-group-basic">
               {^{for lst filter=~srcflt mapDepends='flt' srch='node' sort='node' end=end sorted=~flst}}
-                <a class="list-group-item" data-link="href{:address} class{:~root^hosts[~encodr(host)].reachable ? 'list-group-item' : 'list-group-item unreachable'}"><img src="data:image/svg+xml;base64,{{:~root^hosts[~encodr(host)].icon}}"/>&nbsp;{^{:~highlight(node,~root.flt)}}</a>
+                <a class="list-group-item" data-link="href{:address} class{:~root^hosts[~encodr(host)].reachable ? 'list-group-item' : 'list-group-item unreachable'}"><img src="data:image/svg+xml;base64,{{:~root^hosts[~encodr(host)].icon}}"/>&nbsp;{^{:~highlight(name,~root.flt)}}</a>
               {{/for}}
               {^{if (~flst) && (end <= ~flst.length)}}
                 <a class="list-group-item listmore">more</a>
