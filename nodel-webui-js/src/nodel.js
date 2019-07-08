@@ -64,6 +64,9 @@ $.views.helpers({
     var re = new RegExp("(.*)("+sub+")(.*)","ig");
     return value.replace(re, '$1<strong>$2</strong>$3')
   },
+  stringify: function(value){
+    return JSON.stringify(value);
+  },
   jsonhighlight: function(json) {
     json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
@@ -1998,6 +2001,8 @@ var parseLog = function(log, ani){
                 updatesignal(ele, log.arg);
               } else if($(ele).is("input")) {
                 $(ele).not(':active').val(log.arg);
+              } else if($(ele).hasClass('toint')) {
+                $(ele).text(parseInt(log.arg));
               } else {
                 if ($(ele).is("output, span, h4, p")) $(ele).text(log.arg);
                 // lists
