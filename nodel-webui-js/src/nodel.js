@@ -96,6 +96,30 @@ $.views.converters({
   }
 });
 
+$.fn.shiftSelectable = function() {
+  var $container = this;
+  var lastChecked;
+  $container.on('click', 'label.multi input[type="checkbox"]', function(e) {
+    if(e.shiftKey) {
+      e.preventDefault();
+    };
+  });
+  $container.on('mousedown', 'label.multi', function(e) {
+    if(!lastChecked) {
+        lastChecked = this;
+        return;
+    }
+    var $boxes = $container.find('label.multi');
+    if(e.shiftKey) {
+        var start = $boxes.index(this),end = $boxes.index(lastChecked);
+        var ischecked = $(lastChecked).find('input[type="checkbox"]').prop('checked');
+        $boxes.slice(Math.min(start, end), Math.max(start, end) + 1).find('input[type="checkbox"]').prop('checked', ischecked).trigger('change');
+        e.preventDefault();
+    }
+    lastChecked = this;
+  });
+};
+
 var parseType = function(val, type) {
   switch(type){
     case "number":
@@ -1034,6 +1058,7 @@ var setEvents = function(){
       if(data[grp][i]['_$checked'] == true) $.observable(data[grp][i]).setProperty('node', nme);
     }
   });
+  $('.nodel-remote').shiftSelectable();
   $('body').on('keydown', 'input.node, input.event, input.action', function(e) {
     var charCode = e.charCode || e.keyCode;
     if(charCode == 13) {

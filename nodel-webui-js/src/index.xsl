@@ -562,7 +562,7 @@
                                             {^{if ~initObj('<%:~key%>', <%:~key%>)}}
                                               {^{for <%:~key%>}}
                                                 <td>
-                                                  <label>
+                                                  <label class="multi">
                                                     {^{if ~initHid('_$checked')}}
                                                       <input type="checkbox" data-link="_$checked"/>
                                                     {{/if}}
