@@ -96,11 +96,11 @@
                 <xsl:for-each select="/pages/page|/pages/pagegroup">
                   <xsl:if test="self::pagegroup">
                   <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><xsl:value-of select="@title"/><span class="caret"></span></a>
+                    <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><xsl:value-of select="@title"/><span class="caret"></span></a>
                     <ul class="dropdown-menu">
                       <xsl:for-each select="page">
                         <li>
-                          <a href="#" data-nav="{translate(@title,translate(@title,$allowedSymbols,''),'')}" data-toggle="collapse" data-target="#nodel-navbar.in">
+                          <a role="button" data-nav="{translate(@title,translate(@title,$allowedSymbols,''),'')}" data-toggle="collapse" data-target="#nodel-navbar.in">
                             <xsl:if test="@action">
                               <xsl:attribute name="data-action">
                                 <xsl:value-of select="@action"/>
@@ -115,7 +115,7 @@
                   </xsl:if>
                     <xsl:if test="self::page">
                     <li>
-                      <a href="#" data-nav="{translate(@title,translate(@title,$allowedSymbols,''),'')}" data-toggle="collapse" data-target="#nodel-navbar.in">
+                      <a role="button" data-nav="{translate(@title,translate(@title,$allowedSymbols,''),'')}" data-toggle="collapse" data-target="#nodel-navbar.in">
                         <xsl:if test="@action">
                           <xsl:attribute name="data-action">
                             <xsl:value-of select="@action"/>
@@ -150,7 +150,7 @@
                     <xsl:if test="@type='edit'">
                       <ul class="nav navbar-nav edtgrp">
                         <li class="dropdown">
-                          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Functions <span class="caret"></span></a>
+                          <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Functions <span class="caret"></span></a>
                           <ul class="dropdown-menu">
                             <li class="form">
                               <div>
