@@ -334,7 +334,7 @@
           <%else type=="number" || type=="integer"%>
             <%include ~id=~genid() tmpl="#numberTmpl"/%>
           <%else type=="object"%>
-            <%include ~id=~genid() tmpl="#objectTmpl" ~inobj=true/%>
+            <%include ~id=~genid() tmpl="#objectTmpl"/%>
           <%else type=="array"%>
             <%include ~id=~genid() tmpl="#arrayTmpl"/%>
           <%/if%>
@@ -394,8 +394,10 @@
             <div class="panel-heading accordion-toggle collapsed" data-toggle="collapse" data-target="#<%:~id%>_object_group" aria-expanded="false">
               <%if title%>
                 <div class="panel-title"><h5 class="panel-title"><%>title%></h5></div>
-              <%else%>
+              <%else ~inobj || !~nokeytitle%>
                 <div class="panel-title"><h5 class="panel-title"><%>~key%></h5></div>
+              <%else%>
+                <div class="panel-title"><h5 class="panel-title">&nbsp;</h5></div>
               <%/if%>
             </div>
             <div id="<%:~id%>_object_group" class="panel-collapse collapse" aria-expanded="false">
@@ -404,7 +406,7 @@
                 {^{for <%:~key%>}}
                   <%props properties sort="prop.order"%>
                     <%for prop ~key=key%>
-                      <%include tmpl="#switchTmpl"/%>
+                      <%include tmpl="#switchTmpl" ~inobj=true/%>
                     <%/for%>
                   <%/props%>
                 {{/for}}
@@ -420,8 +422,10 @@
             <div class="panel-heading accordion-toggle collapsed" data-toggle="collapse" data-target="#<%:~id%>_array_group" aria-expanded="false">
               <%if title%>
                 <div class="panel-title"><h5 class="panel-title"><%>title%></h5></div>
-              <%else%>
+              <%else ~inobj || !~nokeytitle%>
                 <div class="panel-title"><h5 class="panel-title"><%>~key%></h5></div>
+              <%else%>
+                <div class="panel-title"><h5 class="panel-title">&nbsp;</h5></div>
               <%/if%>
             </div>
             <div id="<%:~id%>_array_group" class="panel-collapse collapse" aria-expanded="false">
@@ -436,7 +440,7 @@
                               <td class="col-sm-12">
                                 <%props properties sort="prop.order"%>
                                   <%for prop ~key=key%>
-                                    <%include tmpl="#switchTmpl"/%>
+                                    <%include tmpl="#switchTmpl" ~inobj=true/%>
                                   <%/for%>
                                 <%/props%>
                                 <div class="btn-group btn-group-xs">
