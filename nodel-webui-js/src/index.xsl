@@ -673,7 +673,7 @@
                 <li data-link="data-type{:type} class{:'log log_'+alias}">
                   <span class="logicon"></span>
                   <span class="logtitle">{^{>alias}}</span><span class="logtimestamp"> - {^{>~nicetime(timestamp)}}</span>
-                  {^{if arg}}
+                  {^{if ~isset(arg)}}
                     <span class="logarg">{^{:~jsonhighlight(~sanitize(arg, 250))}}</span>
                   {{/if}}
                 </li>
