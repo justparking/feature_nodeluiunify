@@ -307,7 +307,7 @@
           </footer>
         </xsl:if>
         <!-- end footer -->
-        <script src="v1/js/components.js"></script>
+        <script src="v1/js/components.min.js"></script>
         <script src="v1/js/nodel.js"></script>
         <xsl:if test="not(/pages/@core)">
           <xsl:if test="/pages/@js">
