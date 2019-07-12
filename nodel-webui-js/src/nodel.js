@@ -684,31 +684,40 @@ var updateNodelist = function(standalone=false){
   if(nodeListreq) nodeListreq.abort();
   clearTimeout($('body').data('nodelistTimer'));
   nodeListreq = $.getJSON('http://'+host+'/REST/nodeURLs', function(data) {
+  //nodeListreq = $.getJSON('http://'+host+'/nodes/Unify/nodeURLs.json', function(data) {
     if(standalone) online();
     for (i=0; i<data.length; i++) {
       var ind = -1;
       data[i].host = getHost(data[i].address);
       data[i].name = data[i].node;
       data[i].node = getSimpleName(data[i].node);
-      if(nodeList['lst']) {
+    }
+    if(_.isUndefined(nodeList['lst']) || nodeList['lst'].length == 0) {
+      for (i=0; i<data.length; i++) {
+        if(_.isUndefined(nodeList['hosts'][encodr(data[i].host)])) updateHost(data[i].host);
+      };
+      $.observable(nodeList['lst']).refresh(data);
+    } else {
+      for (i=0; i<data.length; i++) {
+        var ind = -1;
         ind = nodeList['lst'].findIndex(function(_ref) {
           return (_ref.name == data[i].name) && (_ref.host == data[i].host);
         });
+        if(ind == -1) {
+          var node = data[i];
+          if(_.isUndefined(nodeList['hosts'][encodr(node.host)])) updateHost(node.host);
+          $.observable(nodeList['lst']).insert(0, node);
+        }
       }
-      if(ind == -1) {
-        var node = data[i];
-        if(_.isUndefined(nodeList['hosts'][encodr(node.host)])) updateHost(node.host);
-        $.observable(nodeList['lst']).insert(0, node);
+      for (i=0; i<nodeList['lst'].length; i++) {
+        var ind = -1;
+        if(data){
+          ind = data.findIndex(function(_ref) {
+            return (_ref.name == nodeList['lst'][i].name) && (_ref.host == nodeList['lst'][i].host);
+          });
+        }
+        if(ind == -1) $.observable(nodeList['lst']).remove(i);
       }
-    }
-    for (i=0; i<nodeList['lst'].length; i++) {
-      var ind = -1;
-      if(data){
-        ind = data.findIndex(function(_ref) {
-          return (_ref.name == nodeList['lst'][i].name) && (_ref.host == nodeList['lst'][i].host);
-        });
-      }
-      if(ind == -1) $.observable(nodeList['lst']).remove(i);
     }
   }).fail(function(){
     if(standalone) offline();
