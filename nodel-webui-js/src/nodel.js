@@ -1006,8 +1006,7 @@ var setEvents = function(){
     var charCode = e.charCode || e.keyCode;
     if ((charCode !== 16) && (charCode !== 17) && (charCode !== 18) && (!e.ctrlKey) && (!e.shiftKey) && (!e.altKey)) {
       var ele = $(this).find('.consoleinput').not(':focus');
-      if(ele) {
-        ele.focus();
+      if(ele.length) {
         caretToEnd(ele.get(0));
       }
     }

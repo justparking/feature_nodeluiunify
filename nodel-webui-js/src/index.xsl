@@ -691,7 +691,7 @@
           <div class="base" tabindex="0">
             <div>
               {^{for logs}}<div data-link="class{:'consoletype_'+console}"><span class="consoletimestamp">{^{>~nicetime(timestamp,true)}}</span>&nbsp;<span class="consolecomment">{^{>comment}}</span></div>{{/for}}
-              <div><div class="consoleprompt">&gt;</div><div class="consoleinput" contenteditable="true" spellcheck="false"></div></div>
+              <div><div class="consoleprompt">&gt;</div><div class="consoleinput" contenteditable="true" tabindex="0" spellcheck="false"></div></div>
             </div>
           </div>
         ]]>

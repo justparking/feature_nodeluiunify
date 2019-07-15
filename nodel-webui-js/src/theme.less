@@ -51,12 +51,14 @@ label {
 .navbar-nav > li.active {
   background: @body-bg;
 }
-.navbar-brand > a > img {
-  display: inline-block;
-  margin-top: -10px;
-  vertical-align: top;
-  height: 40px;
-  max-height: 40px;
+.navbar-brand > a {
+  > img {
+    display: inline-block;
+    margin-top: -10px;
+    vertical-align: top;
+    height: 40px;
+    max-height: 40px;
+  }
   + span#title:not(:empty) {
     padding-left: 12px;
   }
@@ -537,9 +539,9 @@ div[data-nodel="log"] ul {
 div.nodel-actsig {
   hr {
     margin-bottom: @modal-inner-padding;
-    margin-top: @modal-inner-padding;
+    margin-top: 0;
   }
-  fieldset {
+  .row:last-child fieldset {
     margin-bottom: 0;
   }
 }
