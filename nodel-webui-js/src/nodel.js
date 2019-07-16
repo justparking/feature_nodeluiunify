@@ -608,7 +608,7 @@ var createDynamicElements = function(){
 };
 
 var getSimpleName = function(name){
-  return new RegExp(/^(.+?)(?:\(| \(|$)/, "ig").exec(name)[1];
+  return new RegExp(/^(.+?)(?:\(| \(|$)/ig).exec(name)[1];
 };
 
 var generateHostIcon = function(host) {
@@ -679,7 +679,8 @@ var checkHostList = function(){
   }
 };
 
-var updateNodelist = function(standalone=false){
+var updateNodelist = function(standalone){
+  if(_.isUndefined(standalone)) standalone=false;
   var d = $.Deferred();
   if(nodeListreq) nodeListreq.abort();
   clearTimeout($('body').data('nodelistTimer'));
