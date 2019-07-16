@@ -580,12 +580,12 @@
                                                 </td>
                                                 <td>
                                                   <div>
-                                                    <input placeholder="node" type="text" class="form-control node" data-link="node"/>
+                                                    <input spellcheck="false" placeholder="node" type="text" class="form-control node" data-link="node"/>
                                                   </div>
                                                 </td>
                                                 <td>
                                                   <div>
-                                                    <input placeholder="<%>~fieldkey%>" type="text" class="form-control <%>~fieldkey%>" data-link="<%>~fieldkey%>"/>
+                                                    <input spellcheck="false" placeholder="<%>~fieldkey%>" type="text" class="form-control <%>~fieldkey%>" data-link="<%>~fieldkey%>"/>
                                                   </div>
                                                 </td>
                                               {{/for}}
@@ -729,7 +729,7 @@
               </fieldset>
             </form>
             <div class="list-group list-group-basic">
-              {^{for lst filter=~srcflt mapDepends='flt' srch='node' sort='node' end=end sorted=~flst}}
+              {^{for lst sort='node' end=end sorted=~flst}}
                 <a class="list-group-item" data-link="href{:address} class{:~root^hosts[~encodr(host)].reachable ? 'list-group-item' : 'list-group-item unreachable'}"><img src="data:image/svg+xml;base64,{{:~root^hosts[~encodr(host)].icon}}"/>&nbsp;{^{:~highlight(name,~root.flt)}}</a>
               {{/for}}
               {^{if (~flst) && (end <= ~flst.length)}}

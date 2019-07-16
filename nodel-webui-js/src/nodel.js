@@ -47,12 +47,6 @@ $.views.helpers({
   fromtime: function(value){
     return moment(value).from(moment(), true);
   },
-  srcflt: function(item, i, items) {
-    if(this.view.data.flt) {
-      return item[this.props.srch].search(new RegExp(this.view.data.flt, "ig")) !== -1;
-    }
-    else return true;
-  },
   encodr: function(value){
     return encodr(value);
   },
@@ -61,6 +55,7 @@ $.views.helpers({
     return true;
   },
   highlight: function(value, sub) {
+    sub = sub.replace(new RegExp('[.\\\\+*?\\[\\^\\]$(){}=!<>|:\\-]', 'g'), '\\$&');
     var re = new RegExp("(.*)("+sub+")(.*)","ig");
     return value.replace(re, '$1<strong>$2</strong>$3')
   },
@@ -336,7 +331,6 @@ var allowedtxt = ['py','xml','xsl','js','json','html','htm','css','java','groovy
 var allowedbinary = ['png','jpg','ico'];
 var nodeList = {'lst':[], 'flt':'', 'end':20, 'hosts':{}};
 var nodeListreq = null;
-//var hostList = {};
 
 $(function() {
   host = document.location.hostname + ':' + window.document.location.port;
@@ -358,21 +352,19 @@ $(function() {
         updateConsoleForm();
         updateLogForm();
         updateCharts();
-        updateNodelist().then(function(){
-          setEvents();
-          updateLogs();
-          // selecct page
-          if(window.location.hash) $("*[data-nav='"+window.location.hash.substring(1)+"']").trigger('click');
-          else $('*[data-nav]').first().trigger('click');
-          // init scrollable divs
-          $('.scrollbar-inner').scrollbar();
-          // hide sects by default
-          $(".sect").hide();
-          // init editor
-          initEditor();
-          // init toolkit
-          initToolkit();
-        });
+        setEvents();
+        updateLogs();
+        // selecct page
+        if(window.location.hash) $("*[data-nav='"+window.location.hash.substring(1)+"']").trigger('click');
+        else $('*[data-nav]').first().trigger('click');
+        // init scrollable divs
+        $('.scrollbar-inner').scrollbar();
+        // hide sects by default
+        $(".sect").hide();
+        // init editor
+        initEditor();
+        // init toolkit
+        initToolkit();
         fillUIPicker();
         checkReload();
       }));
@@ -380,14 +372,14 @@ $(function() {
   } else {
     $.when(createDynamicElements().then(function(){
       updatepadding();
-      updateNodelist(true).then(function(){
-        setEvents();
-        updateLogForm();
-        updateCharts();
-        initToolkit();
-        $('*[data-nav]').first().trigger('click');
-        $('.nodelistfilter').focus();
-      });
+      getNodeList();
+      setEvents();
+      updateLogForm();
+      updateCharts();
+      initToolkit();
+      checkHostOnline();
+      $('*[data-nav]').first().trigger('click');
+      $('.nodelistfilter').focus();
     }));
   }
 });
@@ -679,56 +671,28 @@ var checkHostList = function(){
   }
 };
 
-var updateNodelist = function(standalone){
-  if(_.isUndefined(standalone)) standalone=false;
+var getNodeList = function(filterstr){
+  if(!_.isUndefined(filterstr)) filter={'filter':filterstr};
+  else filter = {};
   var d = $.Deferred();
   if(nodeListreq) nodeListreq.abort();
-  clearTimeout($('body').data('nodelistTimer'));
-  nodeListreq = $.getJSON('http://'+host+'/REST/nodeURLs', function(data) {
+  // test list (for large Nodel networks performance testing)
   //nodeListreq = $.getJSON('http://'+host+'/nodes/Unify/nodeURLs.json', function(data) {
-    if(standalone) online();
+  nodeListreq = $.getJSON('http://'+host+'/REST/nodeURLs', filter, function(data) {
     for (i=0; i<data.length; i++) {
       var ind = -1;
       data[i].host = getHost(data[i].address);
       data[i].name = data[i].node;
       data[i].node = getSimpleName(data[i].node);
+      if(_.isUndefined(nodeList['hosts'][encodr(data[i].host)])) updateHost(data[i].host);
     }
-    if(_.isUndefined(nodeList['lst']) || nodeList['lst'].length == 0) {
-      for (i=0; i<data.length; i++) {
-        if(_.isUndefined(nodeList['hosts'][encodr(data[i].host)])) updateHost(data[i].host);
-      };
-      $.observable(nodeList['lst']).refresh(data);
-    } else {
-      for (i=0; i<data.length; i++) {
-        var ind = -1;
-        ind = nodeList['lst'].findIndex(function(_ref) {
-          return (_ref.name == data[i].name) && (_ref.host == data[i].host);
-        });
-        if(ind == -1) {
-          var node = data[i];
-          if(_.isUndefined(nodeList['hosts'][encodr(node.host)])) updateHost(node.host);
-          $.observable(nodeList['lst']).insert(0, node);
-        }
-      }
-      for (i=0; i<nodeList['lst'].length; i++) {
-        var ind = -1;
-        if(data){
-          ind = data.findIndex(function(_ref) {
-            return (_ref.name == nodeList['lst'][i].name) && (_ref.host == nodeList['lst'][i].host);
-          });
-        }
-        if(ind == -1) $.observable(nodeList['lst']).remove(i);
-      }
-    }
-  }).fail(function(){
-    if(standalone) offline();
+    $.observable(nodeList['lst']).refresh(data);
   }).always(function(){
-    $('body').data('nodelistTimer', setTimeout(function() { updateNodelist(standalone); }, 30000));
     if(_.isUndefined($('body').data('hostlistTimer'))) checkHostList();
     d.resolve();
   });
   return d.promise();
-};
+}
 
 var checkReachable = function(host){
   var d = $.Deferred();
@@ -1115,21 +1079,22 @@ var setEvents = function(){
     } else if ((charCode != 9) && (charCode != 27)) {
       if(e.ctrlKey || e.altKey) return true;
       var srchstr = $(this).val().replace(new RegExp('[.\\\\+*?\\[\\^\\]$(){}=!<>|:\\-]', 'g'), '\\$&');
-      var data = $.grep(nodeList.lst, function(v) {
-        return v.node.search(new RegExp(srchstr, "ig")) !== -1;
-      });
       var ele = this;
-      if(data.length > 0) {
-        if(!$(ele).siblings('div.autocomplete').length) $(ele).after('<div class="autocomplete"><ul></ul></div>');
-        var list = $(ele).siblings('div.autocomplete').children('ul');
-        $(list).empty();
-        $.each(data, function(key, value) {
-          var re = new RegExp("(.*)("+srchstr+")(.*)","ig");
-          var val = value.node.replace(re, '$1<strong>$2</strong>$3')
-          $('<li>'+val+'</li>').data('address', value.address).appendTo(list);
-          return key < 6;
-        });
-      } else $(ele).siblings('div.autocomplete').remove();
+      getNodeList($(this).val()).then(function(){
+        var data = nodeList.lst;
+        if ((data.length == 1) && (srchstr == data[0].node)) $(ele).siblings('div.autocomplete').remove();
+        else if(data.length > 0) {
+          if(!$(ele).siblings('div.autocomplete').length) $(ele).after('<div class="autocomplete"><ul></ul></div>');
+          var list = $(ele).siblings('div.autocomplete').children('ul');
+          $(list).empty();
+          $.each(data, function(key, value) {
+            var re = new RegExp("(.*)("+srchstr+")(.*)","ig");
+            var val = value.node.replace(re, '$1<strong>$2</strong>$3')
+            $('<li>'+val+'</li>').data('address', value.address).appendTo(list);
+            return key < 20;
+          });
+        } else $(ele).siblings('div.autocomplete').remove();
+      });
     }
   });
   $('body').on('keyup', 'input.event, input.action', function(e) {
@@ -1166,42 +1131,40 @@ var setEvents = function(){
       var ele = this;
       var type = $(this).hasClass("event") ? 'events' : 'actions';
       var node = $.view(this).data.node;
-      var data = $.grep(nodeList.lst, function(v) {
-        return v.node == node;
-      });
-      if(data.length > 0){
-        var len = 0;
+      getNodeList(node).then(function(){
         $.each($(this).data('reqs'), function(key,value){ value.abort() });
         var reqs=[];
-        var items = $('<ul></ul>');
-        $.each(data, function(key, value) {
-          var parser = document.createElement('a');
-          parser.href = value.address;
-          var host = parser.host;
-          $(parser).remove();
-          //var lnode = value.node;
-          reqs.push($.getJSON('http://'+host+'/REST/nodes/'+encodeURIComponent(value.node)+'/'+type,"", function(data) {
-          //reqs.push($.getJSON(value.reachable+'REST/'+type,"", function(data) {
-            $.each(data, function(key, value) {
-              if(value.name.search(new RegExp(srchstr, "ig")) >= 0) {
-                // check if the name matches the current value, highlight and add to the list
+        var actsigs=[];
+        var data = $.grep(nodeList.lst, function(v) {
+          return v.node == node;
+        });
+        if(data.length > 0){
+          $.each(data, function(key, value) {
+            reqs.push($.getJSON('http://'+value.host+'/REST/nodes/'+encodeURIComponent(value.node)+'/'+type,"", function(data) {
+              $.each(data, function(key, value) {
+                if(value.name.search(new RegExp(srchstr, "ig")) >= 0) {
+                  actsigs.push(value.name);
+                }
+              });
+            }));
+          });
+          $.when.apply($, reqs).then(function (){
+            if ((actsigs.length == 1) && (srchstr == actsigs[0])) $(ele).siblings('div.autocomplete').remove();
+            else if(actsigs.length > 0) {
+              if(!$(ele).siblings('div.autocomplete').length) $(ele).after('<div class="autocomplete"><ul></ul></div>');
+              var list = $(ele).siblings('div.autocomplete').children('ul');
+              $(list).empty();
+              $.each(actsigs, function(key, value) {
                 var re = new RegExp("(.*)("+srchstr+")(.*)","ig");
-                var val = value.name.replace(re, '$1<strong>$2</strong>$3')
-                $(items).append('<li>'+val+'</li>');
-                len++;
-              }
-              return len < 20;
-            });
-          }));
-        });
-        $.when.apply($, reqs).then(function (){
-          if($(items).children('li').length != 0){
-            if(!$(ele).siblings('div.autocomplete').length) $(ele).after('<div class="autocomplete"><ul></ul></div>');
-            $(ele).siblings('div.autocomplete').children('ul').replaceWith(items);
-          } else $(ele).siblings('div.autocomplete').remove();
-        });
-        $(ele).data('reqs', reqs);
-      } else $(ele).siblings('div.autocomplete').remove();
+                var val = value.replace(re, '$1<strong>$2</strong>$3')
+                $(list).append('<li>'+val+'</li>');
+                return key < 20;
+              });
+            } else $(ele).siblings('div.autocomplete').remove();
+          });
+          $(ele).data('reqs', reqs);
+        } else $(ele).siblings('div.autocomplete').remove();
+      });
     }
   });
   $('body').on('mouseenter', 'div.autocomplete ul li', function() {
@@ -1230,37 +1193,39 @@ var setEvents = function(){
     $.each(data[grp], function(nme, val){
       if(val['_$checked'] == true){
         var lnode = val.node;
-        var data = $.grep(nodeList.lst, function(v) {
-          return v.node == lnode;
-        });
-        if(data.length > 0){
-          $.each($(ele).data('reqs_'+nme), function(k,value){ value.abort() });
-          var reqs=[];
-          var strs=[];
-          $.each(data, function(key, value) {
-            var parser = document.createElement('a');
-            parser.href = value.address;
-            var host = parser.host;
-            $(parser).remove();
-            var lnode = value.node;
-            reqs.push($.getJSON('http://'+host+'/REST/nodes/'+encodeURIComponent(lnode)+'/'+grp,"", function(data) {
-              $.each(data, function(key, value) {
-                strs.push(value.name);
-              });
-            }));
+        getNodeList(node).then(function(){
+          var data = $.grep(nodeList.lst, function(v) {
+            return v.node == lnode;
           });
-          $.when.apply($, reqs).then(function (){
-            if(strs.length != 0){
-              var fs = FuzzySet(strs, true, 1, 1);
-              var data = $.view(ele).data;
-              var res = fs.get(decodr(nme), null, 0.5);
-              if(res) {
-                $.observable(data[grp][nme]).setProperty(fld, res[0][1])
+          if(data.length > 0){
+            $.each($(ele).data('reqs_'+nme), function(k,value){ value.abort() });
+            var reqs=[];
+            var strs=[];
+            $.each(data, function(key, value) {
+              var parser = document.createElement('a');
+              parser.href = value.address;
+              var host = parser.host;
+              $(parser).remove();
+              var lnode = value.node;
+              reqs.push($.getJSON('http://'+host+'/REST/nodes/'+encodeURIComponent(lnode)+'/'+grp,"", function(data) {
+                $.each(data, function(key, value) {
+                  strs.push(value.name);
+                });
+              }));
+            });
+            $.when.apply($, reqs).then(function (){
+              if(strs.length != 0){
+                var fs = FuzzySet(strs, true, 1, 1);
+                var data = $.view(ele).data;
+                var res = fs.get(decodr(nme), null, 0.5);
+                if(res) {
+                  $.observable(data[grp][nme]).setProperty(fld, res[0][1])
+                }
               }
-            }
-          });
-          $(ele).data('reqs_'+nme, reqs);
-        }
+            });
+            $(ele).data('reqs_'+nme, reqs);
+          }
+        });
       }
     });
   });
@@ -1611,6 +1576,10 @@ var setEvents = function(){
         }
       }
     }
+  });
+  $('body').on('keyup','.nodelistfilter', function(){
+    var filterstr = $(this).val();
+    getNodeList(filterstr);
   });
   $('body').on('click','.nodel-list .listmore', function(){
     var ele = $(this).closest('.base').find('.nodelistshow');
@@ -1963,6 +1932,17 @@ var updateLogs = function(){
       $('body').data('update', setTimeout(function() { updateLogs(); }, 1000));
     });
   }
+};
+
+var checkHostOnline = function() {
+  var url = 'http://' + host + '/REST/logs?from=0&max=1';
+  $.getJSON(url, function (data) {
+    online();
+  }).fail(function() {
+    offline();
+  }).always(function () {
+    $('body').data('checkonline', setTimeout(function() { checkHostOnline(); }, 1000));
+  });
 };
 
 var online = function(socket){
