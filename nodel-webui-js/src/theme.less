@@ -433,14 +433,21 @@ table.btn-grid {
   table-layout: fixed;
   background: transparent;
   width: 100%;
+  margin-bottom: @form-group-margin-bottom;
   & td {
     padding: 3px;
   }
   & td:first-child {
     padding-left: 0;
   }
+  & td:last-child {
+    padding-right: 0;
+  }
   & tr:first-child td {
     padding-top: 0;
+  }
+  & tr:last-child td {
+    padding-bottom: 0;
   }
 }
 #confirmkeypad {

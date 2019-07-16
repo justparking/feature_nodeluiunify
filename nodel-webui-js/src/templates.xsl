@@ -374,9 +374,6 @@
   <xsl:template match="image">
     <img src="{@source}">
       <xsl:if test="@showevent">
-        <xsl:attribute name="class">
-          <xsl:text>sect</xsl:text>
-        </xsl:attribute>
         <xsl:attribute name="data-showevent">
           <xsl:value-of select="@showevent"/>
         </xsl:attribute>
@@ -386,6 +383,13 @@
           </xsl:attribute>
         </xsl:if>
       </xsl:if>
+      <xsl:variable name="imageclass">
+        <xsl:if test="@showevent">sect</xsl:if>
+        <xsl:text> img-responsive</xsl:text>
+      </xsl:variable>
+      <xsl:attribute name="class">
+        <xsl:value-of select="normalize-space($imageclass)" />
+      </xsl:attribute>
       <xsl:if test="@event">
         <xsl:attribute name="data-event">
           <xsl:value-of select="@event"/>
@@ -631,6 +635,9 @@
         <xsl:text>btn-group btn-select</xsl:text>
         <xsl:if test="@showevent">
           <xsl:text> sect</xsl:text>
+        </xsl:if>
+        <xsl:if test="@dropup">
+          <xsl:text> dropup</xsl:text>
         </xsl:if>
       </xsl:attribute>
       <xsl:if test="@showevent">
