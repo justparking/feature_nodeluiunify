@@ -2010,6 +2010,7 @@ var parseLog = function(log, ani){
             if($.type(log.arg)== "object") log.arg = log.arg[$(ele).data('showevent-arg')];
             switch ($.type(log.arg)) {
               case "string":
+              case "number":
                 $(ele).hide();
                 $(ele).filter(function() {
                   return $.inArray(log.arg, $.isArray($(this).data('showarg')) ? $(this).data('showarg') : [$(this).data('showarg')]) >= 0;
