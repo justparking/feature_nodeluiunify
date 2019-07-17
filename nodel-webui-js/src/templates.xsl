@@ -264,7 +264,7 @@
           <xsl:value-of select="@arg"/>
         </xsl:attribute>
       </xsl:if>
-      <div><xsl:value-of select="text()"/></div>
+      <p><xsl:value-of select="text()"/></p>
       <xsl:apply-templates select="badge|partialbadge|signal|icon|text|image"/>
     </a>
   </xsl:template>
@@ -295,7 +295,7 @@
             <xsl:otherwise>btn btn-default</xsl:otherwise>
           </xsl:choose>
         </xsl:attribute>
-        <div><xsl:value-of select="text()"/></div>
+        <p><xsl:value-of select="text()"/></p>
         <xsl:apply-templates select="badge|partialbadge|signal|icon|text|image"/>
       </a>
     </xsl:if>

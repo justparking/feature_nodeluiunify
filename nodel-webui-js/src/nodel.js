@@ -47,6 +47,12 @@ $.views.helpers({
   fromtime: function(value){
     return moment(value).from(moment(), true);
   },
+  srcflt: function(item, i, items) {
+    if(this.view.data.flt) {
+      return item[this.props.srch].search(new RegExp(this.view.data.flt, "ig")) !== -1;
+    }
+    else return true;
+  },
   encodr: function(value){
     return encodr(value);
   },
@@ -830,6 +836,10 @@ var setEvents = function(){
     }
     $(ele).data('throttle')(data.action, data.arg);
   });
+  $('body').on('touchstart mousedown touchend touchcancel mouseup','input[type=range]input[data-action]', function (e) {
+    if($.inArray(e.type, ['touchstart','mousedown']) > -1) $(this).addClass('active');
+    else $(this).removeClass('active');
+  });
   $('body').on('touchstart mousedown touchend touchcancel mouseup','*[data-actionon]*[data-actionoff]', function (e) {
     e.stopPropagation(); e.preventDefault();
     data = getAction(this);
@@ -1577,9 +1587,12 @@ var setEvents = function(){
       }
     }
   });
-  $('body').on('keyup','.nodelistfilter', function(){
-    var filterstr = $(this).val();
-    getNodeList(filterstr);
+  $('body').on('keyup','.nodelistfilter', function(e){
+    var charCode = e.charCode || e.keyCode;
+    if((charCode !== 40) && (charCode !== 38) && (charCode !== 13) && (charCode !== 27)) {
+      var filterstr = $(this).val();
+      getNodeList(filterstr);
+    };
   });
   $('body').on('click','.nodel-list .listmore', function(){
     var ele = $(this).closest('.base').find('.nodelistshow');
@@ -2055,7 +2068,7 @@ var parseLog = function(log, ani){
               } else if ($(ele).is(".signal")) {
                 updatesignal(ele, log.arg);
               } else if($(ele).is("input")) {
-                $(ele).not(':active').val(log.arg);
+                $(ele).not('.active').val(log.arg);
               } else if($(ele).hasClass('toint')) {
                 $(ele).text(parseInt(log.arg));
               } else {
@@ -2068,7 +2081,6 @@ var parseLog = function(log, ani){
                 // pages
                 $("[data-page]").hide();
                 $('[data-page="' + log.arg + '"]').show();
-                if($(ele).is("input")) $(ele).not(':active').val(log.arg);
               }
               break;
             case "string":
