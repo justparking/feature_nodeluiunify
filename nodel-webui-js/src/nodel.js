@@ -1091,7 +1091,8 @@ var setEvents = function(){
       }
     } else if ((charCode != 9) && (charCode != 27)) {
       if(e.ctrlKey || e.altKey) return true;
-      var srchstr = $(this).val().replace(new RegExp('[.\\\\+*?\\[\\^\\]$(){}=!<>|:\\-]', 'g'), '\\$&');
+      var srchstr = $(this).val();
+      var srchflt = srchstr.replace(new RegExp('[.\\\\+*?\\[\\^\\]$(){}=!<>|:\\-]', 'g'), '\\$&');
       var ele = this;
       getNodeList($(this).val()).then(function(){
         var data = nodeList.lst;
@@ -1101,7 +1102,7 @@ var setEvents = function(){
           var list = $(ele).siblings('div.autocomplete').children('ul');
           $(list).empty();
           $.each(data, function(key, value) {
-            var re = new RegExp("(.*)("+srchstr+")(.*)","ig");
+            var re = new RegExp("(.*)("+srchflt+")(.*)","ig");
             var val = value.node.replace(re, '$1<strong>$2</strong>$3')
             $('<li>'+val+'</li>').data('address', value.address).appendTo(list);
             return key < 20;
@@ -1140,7 +1141,8 @@ var setEvents = function(){
       }
     } else if ((charCode != 9) && (charCode != 27)) {
       if(e.ctrlKey || e.altKey) return true;
-      var srchstr = $(this).val().replace(new RegExp('[.\\\\+*?\\[\\^\\]$(){}=!<>|:\\-]', 'g'), '\\$&');
+      var srchstr = $(this).val()
+      var srchflt = srchstr.replace(new RegExp('[.\\\\+*?\\[\\^\\]$(){}=!<>|:\\-]', 'g'), '\\$&');
       var ele = this;
       var type = $(this).hasClass("event") ? 'events' : 'actions';
       var node = $.view(this).data.node;
@@ -1155,7 +1157,7 @@ var setEvents = function(){
           $.each(data, function(key, value) {
             reqs.push($.getJSON('http://'+value.host+'/REST/nodes/'+encodeURIComponent(value.node)+'/'+type,"", function(data) {
               $.each(data, function(key, value) {
-                if(value.name.search(new RegExp(srchstr, "ig")) >= 0) {
+                if(value.name.search(new RegExp(srchflt, "ig")) >= 0) {
                   actsigs.push(value.name);
                 }
               });
@@ -1168,7 +1170,7 @@ var setEvents = function(){
               var list = $(ele).siblings('div.autocomplete').children('ul');
               $(list).empty();
               $.each(actsigs, function(key, value) {
-                var re = new RegExp("(.*)("+srchstr+")(.*)","ig");
+                var re = new RegExp("(.*)("+srchflt+")(.*)","ig");
                 var val = value.replace(re, '$1<strong>$2</strong>$3')
                 $(list).append('<li>'+val+'</li>');
                 return key < 20;
