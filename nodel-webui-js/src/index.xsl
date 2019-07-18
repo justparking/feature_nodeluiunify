@@ -345,7 +345,7 @@
           <form data-form="true" class="base" autocomplete="off">
             <fieldset>
               <%if btntop%>
-                <button type="submit" class="btn btn-default btn-top<%if disabled%> disabled<%/if%>" title="<%:btntitle%>">
+                <button type="submit" class="btn <%if btncolour%>btn-<%:btncolour%><%else%>btn-default<%/if%> btn-top<%if disabled%> disabled<%/if%>" title="<%:btntitle%>">
                   <%>btntitle%>
                   <%if btnfaicon%>
                     <span class="glyphicon glyphicon-<%:btnicon%>" aria-hidden="true"></span>
@@ -374,7 +374,7 @@
                 <%/if%>
               <%/for%>
               <%if !btntop%>
-                <button type="submit" class="btn btn-default<%if disabled%> disabled<%/if%>" title="<%:btntitle%>">
+                <button type="submit" class="btn <%if btncolour%>btn-<%:btncolour%><%else%>btn-default<%/if%><%if disabled%> disabled<%/if%>" title="<%:btntitle%>">
                   <%>btntext%>
                   <%if btnicon%>
                     <span class="glyphicon glyphicon-<%:btnicon%>" aria-hidden="true"></span>
@@ -605,7 +605,7 @@
                   <%/props%>
                 <%/if%>  
               <%/for%>
-              <button type="submit" class="btn btn-default" title="Remote">Save</button>
+              <button type="submit" class="btn btn-success" title="Remote">Save</button>
             </fieldset>
           </form>
         ]]>

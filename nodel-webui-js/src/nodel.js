@@ -547,6 +547,7 @@ var createDynamicElements = function(){
       $.getJSON('http://'+host+'/REST/nodes/'+encodeURIComponent(node)+'/params/schema',"", function(data) {
         if(!_.isEmpty(data)){
           $(ele).data('btntext','Save');
+          $(ele).data('btncolour','success');
           $(ele).data('btntitle','Params');
           $(ele).data('target','params/save');
           $(ele).data('source','params');
@@ -722,6 +723,7 @@ var makeTemplate = function(ele, schema, tmpls){
   if(!_.isUndefined($(ele).data('btnicon')) && $(ele).data('btnicon') !== '') extschema = $.extend({}, {"btnicon": $(ele).data('btnicon')}, extschema);
   if(!_.isUndefined($(ele).data('btnfaicon')) && $(ele).data('btnfaicon') !== '') extschema = $.extend({}, {"btnfaicon": $(ele).data('btnfaicon')}, extschema);
   if(!_.isUndefined($(ele).data('btntext'))) extschema = $.extend({}, {"btntext": $(ele).data('btntext')}, extschema);
+  if(!_.isUndefined($(ele).data('btncolour'))) extschema = $.extend({}, {"btncolour": $(ele).data('btncolour')}, extschema);
   if(!_.isUndefined($(ele).data('btntop'))) extschema = $.extend({}, {"btntop": $(ele).data('btntop')}, extschema);
   if(!_.isUndefined($(ele).data('disabled'))) extschema = $.extend({}, {"disabled": true}, extschema);
   if(!_.isUndefined($(ele).data('nokeytitle'))) extschema = $.extend({}, {"nokeytitle": true}, extschema);
@@ -797,18 +799,19 @@ var convertNames = function(){
   });
 };
 
+// need to fix
 var linkToNode = function(node, grp, name){
-  var ind = nodeList['lst'].findIndex(function(_ref) {
-    return _ref.node == node;
-  });
-  if(ind > -1 ) {
-    if(!_.isUndefined(nodeList.lst[ind].address)){
-      $('.nodel-remote').each(function(){
-        var data = $.view(this).data;
-        $.observable(data).setProperty(grp+'.'+name+'._$link', nodeList.lst[ind].address);
-      });
+  $.getJSON('http://'+host+'/REST/nodeURLsForNode', node, function(data) {
+    for (i=0; i<data.length; i++) {
+      data[i].host = getHost(data[i].address);
+      if(_.isUndefined(nodeList['hosts'][encodr(data[i].host)])) updateHost(data[i].host);
     }
-  }
+    $('.nodel-remote').each(function(){
+      var rdata = $.view(this).data;
+      // need to check for reachability
+      $.observable(rdata).setProperty(grp+'.'+name+'._$link', data[0].address);
+    });
+  });
 };
 
 var setEvents = function(){
