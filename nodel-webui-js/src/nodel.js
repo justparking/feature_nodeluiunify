@@ -1001,8 +1001,9 @@ var setEvents = function(){
       var text = $(this).text();
       if(text){
         $(this).empty();
-        $.get('/REST/nodes/'+encodeURIComponent(node)+'/exec', {code: text}, function(data){
-        }, "json").fail(function(e, s) {
+        var arg = JSON.stringify({code: text});
+        $.postJSON('/REST/nodes/'+encodeURIComponent(node)+'/exec', arg, function(data){
+        }).fail(function(e, s) {
           console.log('Console error: ' + s);
         }).always(function(e){
           updateConsoleForm();
@@ -1751,11 +1752,15 @@ var updateConsoleForm = function(){
           if ($(ele)[0].scrollHeight - $(ele)[0].scrollTop <= $(ele)[0].clientHeight + 1) var yesscroll = true;
           $.each(data, function(key, value) {
             seq = value.seq;
-            var data = $.view($(ele).find('.base')).data['logs'];
-            $.observable(data).insert(value);
-            if(data.length > 200) $.observable(data).remove(0);
+            (function(key, val, yesscroll, ele) {
+              setTimeout(function() {
+                var data = $.view($(ele).find('.base')).data['logs'];
+                $.observable(data).insert(val);
+                if(data.length > 200) $.observable(data).remove(0);
+                if(yesscroll) $(ele).scrollTop($(ele)[0].scrollHeight); 
+              }, 0);
+            })(key, value, yesscroll, ele);
           });
-          if(yesscroll) $(ele).scrollTop($(ele)[0].scrollHeight);
         });
         $('body').data('nodel-console-seq', seq+1);
       }
@@ -2007,6 +2012,255 @@ var throttleLog = function(log, ani){
   throttle['throttle'](ani);
 };
 
+var process_showevent = function(log, ani){
+  var eles = $(".nodel-showevent").filter(function() {
+    return $.inArray(log.alias, $.isArray($(this).data('showevent')) ? $(this).data('showevent') : [$(this).data('showevent')]) >= 0;
+  });
+  $.each(eles, function (i, ele) {
+    if ($(ele).hasClass('sect')) {
+      if($.type(log.arg)== "object") log.arg = log.arg[$(ele).data('showevent-arg')];
+      switch ($.type(log.arg)) {
+        case "string":
+        case "number":
+          $(ele).hide();
+          $(ele).filter(function() {
+            return $.inArray(log.arg, $.isArray($(this).data('showarg')) ? $(this).data('showarg') : [$(this).data('showarg')]) >= 0;
+          }).show();
+          break;
+        case "boolean":
+          $(ele).hide();
+          if(_.isUndefined($(ele).data('showeventdata'))) $(ele).data('showeventdata', {});
+          var val = $(ele).data('showeventdata');
+          val[log.alias] = log.arg;
+          $(ele).data('showeventdata', val);
+          $.each($(ele).data('showeventdata'), function(i, e){
+            if(e == true) $(ele).show();
+          });
+          // fix scroll for hidden console
+          $(ele).find('.nodel-console').scrollTop(999999);
+          break;
+      };
+    }
+  });
+  if(eles.length) updatepadding();
+}
+
+var process_event = function(log, ani){
+  var eles = $(".nodel-event").filter(function() {
+    return $.inArray(log.alias, $.isArray($(this).data('event')) ? $(this).data('event') : [$(this).data('event')]) >= 0;
+  });
+  $.each(eles, function (i, ele) {
+    if($.type(log.arg)== "object") log.arg = log.arg[$(ele).data('event-arg')];
+    if($(ele).hasClass('dynamic')) {
+      $(ele).data('dynamic',log);
+    }
+    switch ($.type(log.arg)) {
+      case "number":
+        if ($(ele).not('.meter, .signal').is("div")) {
+          $(ele).children().filter(function () {
+            return $(this).attr("data-arg") > log.arg;
+          }).removeClass('btn-success').addClass('btn-default');
+          $(ele).children().filter(function () {
+            return $(this).attr("data-arg") <= log.arg;
+          }).removeClass('btn-default').addClass('btn-success');
+        } else if ($(ele).is(".meter")) {
+          updatemeter(ele, log.arg);
+        } else if ($(ele).is(".signal")) {
+          updatesignal(ele, log.arg);
+        } else if($(ele).is("input")) {
+          $(ele).not('.active').val(log.arg);
+        } else if($(ele).hasClass('toint')) {
+          $(ele).text(parseInt(log.arg));
+        } else {
+          if ($(ele).is("output, span, h4, p")) $(ele).text(log.arg);
+          // lists
+          $(ele).children('li').has('a[data-arg]').removeClass('active');
+          $(ele).children('li').has('a[data-arg="' + log.arg + '"]').addClass('active');
+          // button select
+          $(ele).parents('.btn-select').children('button').children('span:first-child').text($(ele).children('li').has('a[data-arg="' + log.arg + '"]').text());
+          // pages
+          $("[data-page]").hide();
+          $('[data-page="' + log.arg + '"]').show();
+        }
+        break;
+      case "string":
+        if($(ele).hasClass('btn-pswitch')){
+          var arg = log.arg.toLowerCase().replace(/[^a-z]+/gi, "");
+          switch (arg) {
+            case "on":
+              $(ele).children('[data-arg="On"]').addClass($(ele).data('class-on')).removeClass('btn-default').removeClass('btn-warning');
+              $(ele).children('[data-arg="Off"]').addClass('btn-default').removeClass($(ele).data('class-off')).removeClass('btn-warning');
+              break
+            case "off":
+              $(ele).children('[data-arg="Off"]').addClass($(ele).data('class-off')).removeClass('btn-default').removeClass('btn-warning');
+              $(ele).children('[data-arg="On"]').addClass('btn-default').removeClass($(ele).data('class-on')).removeClass('btn-warning');
+              break;
+            case "partiallyon":
+              $(ele).children('[data-arg="On"]').addClass('btn-warning').removeClass('btn-default').removeClass($(ele).data('class-on'));
+              $(ele).children('[data-arg="Off"]').addClass('btn-default').removeClass($(ele).data('class-off')).removeClass('btn-warning');
+              break
+            case "partiallyoff":
+              $(ele).children('[data-arg="Off"]').addClass('btn-warning').removeClass('btn-default').removeClass($(ele).data('class-off'));
+              $(ele).children('[data-arg="On"]').addClass('btn-default').removeClass($(ele).data('class-on')).removeClass('btn-warning');
+              break;
+          }
+        } else if ($(ele).hasClass('label-pbadge')) {
+          var arg = log.arg.toLowerCase().replace(/[^a-z]+/gi, "");
+          switch (arg) {
+            case "on":
+              $(ele).text($(ele).data('on'));
+              $(ele).addClass($(ele).data('class-on')).removeClass('label-default').removeClass('label-warning').removeClass($(ele).data('class-off'));
+              break;
+            case "off":
+              $(ele).text($(ele).data('off'));
+              $(ele).addClass($(ele).data('class-off')).removeClass('label-default').removeClass('label-warning').removeClass($(ele).data('class-on'));
+              break;
+            case "partiallyon":
+              $(ele).text($(ele).data('on'));
+              $(ele).addClass('label-warning').removeClass('label-default').removeClass($(ele).data('class-on')).removeClass($(ele).data('class-off'));
+              break;
+            case "partiallyoff":
+              $(ele).text($(ele).data('off'))
+              $(ele).addClass('label-warning').removeClass('label-default').removeClass($(ele).data('class-on')).removeClass($(ele).data('class-off'));
+              break;
+          }
+        } else if ($(ele).hasClass('scrollbar-inner')) {
+          var arg = converter.makeHtml(log.arg);
+          $(ele).html(arg);
+        } else {
+          if ($(ele).is("span, h4, p")) $(ele).text(log.arg);
+          // lists
+          $(ele).children('li').has('a[data-arg]').removeClass('active');
+          $(ele).children('li').has('a[data-arg="' + log.arg + '"]').addClass('active');
+          // button select
+          $(ele).parents('.btn-select').children('button').children('span:first-child').text($(ele).children('li').has('a[data-arg="' + log.arg + '"]').text());
+          // pages
+          $("[data-page]").hide();
+          $('[data-page="' + log.arg + '"]').show();
+          if($(ele).is("input")) $(ele).not(':active').val(log.arg);
+          // image
+          if ($(ele).is("img")) $(ele).attr("src", log.arg);
+        }
+        break;
+      case "boolean":
+        if($(ele).hasClass('btn-switch')) {
+          if (log.arg) {
+            $(ele).children('[data-arg=true]').addClass($(ele).data('class-on')).removeClass('btn-default');
+            $(ele).children('[data-arg=false]').addClass('btn-default').removeClass($(ele).data('class-off'));
+          } else {
+            $(ele).children('[data-arg=false]').addClass($(ele).data('class-off')).removeClass('btn-default');
+            $(ele).children('[data-arg=true]').addClass('btn-default').removeClass($(ele).data('class-on'));                  
+          }
+        } else if($(ele).is("a.btn")) {
+          if (log.arg) $(ele).addClass($(ele).data('class-on')).removeClass('btn-default');
+          else $(ele).addClass('btn-default').removeClass($(ele).data('class-on'));
+        } else if($(ele).is("input[type='checkbox'")) {
+          $(ele).prop('checked',log.arg);
+        } else $(ele).val(log.arg);
+        break;
+      case "undefined":
+        if($(ele).is("span, h4, p, output")) $(ele).text('');
+        else if($(ele).is("input")) $(ele).not(':active').val('');
+        break;
+    }
+  });
+}
+
+var process_status = function(log, ani) {
+  var eles = $(".nodel-status").filter(function() {
+    return $.inArray(log.alias, $.isArray($(this).data('status')) ? $(this).data('status') : [$(this).data('status')]) >= 0;
+  });
+  $.each(eles, function (i, ele) {
+    var ele = $(ele);
+    var clstype = ele.hasClass('panel') ? 'panel' : 'label';
+    if(!_.isUndefined(log.arg) && !_.isUndefined(log.arg['level']) && _.isNumber(log.arg['level'])){
+      var msg = '';
+      if(!_.isUndefined(log.arg['message']) && _.isString(log.arg['message'])) msg = log.arg['message'];
+      ele.find('.status').not('[data-status]').text(msg);
+      if(ele.hasClass('status')) ele.text(msg);
+      switch(log.arg['level']) {
+        case 0:
+          ele.removeClass(clstype+'-default '+clstype+'-warning '+clstype+'-danger '+clstype+'-primary').addClass(clstype+'-success');
+          break;
+        case 1:
+          ele.removeClass(clstype+'-default '+clstype+'-success '+clstype+'-danger '+clstype+'-primary').addClass(clstype+'-warning');
+          break;
+        case 2:
+        case 3:
+        case 4:
+          ele.removeClass(clstype+'-default '+clstype+'-success '+clstype+'-warning '+clstype+'-primary').addClass(clstype+'-danger');
+          break;
+        case 5:
+          ele.removeClass(clstype+'-default '+clstype+'-success '+clstype+'-warning '+clstype+'-danger').addClass(clstype+'-primary');
+          break;
+      }
+    } else if(_.isBoolean(log.arg)) {
+      if (log.arg) $(ele).addClass(clstype+'-success').removeClass(clstype+'-default');
+      else $(ele).addClass(clstype+'-default').removeClass(clstype+'-success');
+    }
+  });
+}
+
+var process_render = function(log, ani){
+  var eles = $(".nodel-render").filter(function() {
+    return $.inArray(log.alias, $.isArray($(this).data('render')) ? $(this).data('render') : [$(this).data('render')]) >= 0;
+  });
+  $.each(eles, function (i, ele) {
+    if($(ele).data('render-template')) {
+      try {
+        $(ele).html($($(ele).data('render-template')).render(log));
+        if(!_.isUndefined($(ele).data('dynamic'))) parseLog($(ele).data('dynamic'));
+      } catch(err) {
+        console.log(err.message);
+      } finally {
+        return true;
+      }
+    }
+  });
+}
+
+var process_form = function(log, ani){
+  var eles = $(".nodel-schema-"+log.type).filter(function() {
+    return $.inArray(log.alias, $.isArray($(this).data('name')) ? $(this).data('name') : [$(this).data('name')]) >= 0;
+  });
+  $.each(eles, function (i, ele) {
+    $.observable($.view($(ele).find('.base')).data).setProperty({'arg':log.arg});
+    if(!ani) {
+      var col = log.type == 'action' ? colours['success'] : colours['danger'];
+      var def = colours['default'];
+      $(ele).find('button[type="submit"] > span').stop(true, true).css({'color': col}).animate({'color': def}, 1000);
+    };
+  });
+}
+
+var process_log = function(log, ani){
+  var eles = $(".nodel-log");
+  $.each(eles, function (i, ele) {
+    var data = $.view($(ele).find('.base')).data['logs'];
+    var ind = data.findIndex(function(_ref) {
+      id = _ref.type + '_' + _ref.alias;
+      return id == log.type + '_' + log.alias;
+    });
+    var entry = {
+      'alias':encodr(log.alias),
+      'type':log.type,
+      'arg':log.arg,
+      'timestamp': log.timestamp};
+    if(ind > -1) {
+      // lock height while updating to prevent scrolling
+      var ul = $(ele).find('ul');
+      $(ul).css("height", $(ul).height());
+      $.observable(data).move(ind, 0);
+      $.observable(data[0]).setProperty({'arg': entry.arg, 'timestamp': entry.timestamp});
+      $(ul).css("height", 'auto');
+    } else $.observable(data).insert(0, entry);
+    // animate icon
+    if(!ani) {
+      $(ele).find('.log_'+encodr(log.alias)+ ' .logicon').stop(true,true).css({'opacity': 1}).animate({'opacity': 0.2}, 1000);
+    }
+  });
+}
+
 var parseLog = function(log, ani){
   if(log.type=='event' && log.source=='local'){
     switch(log.alias) {
@@ -2020,244 +2274,34 @@ var parseLog = function(log, ani){
         break;
       default:
         // handle show-hide events
-        var eles = $(".nodel-showevent").filter(function() {
-          return $.inArray(log.alias, $.isArray($(this).data('showevent')) ? $(this).data('showevent') : [$(this).data('showevent')]) >= 0;
-        });
-        $.each(eles, function (i, ele) {
-          if ($(ele).hasClass('sect')) {
-            if($.type(log.arg)== "object") log.arg = log.arg[$(ele).data('showevent-arg')];
-            switch ($.type(log.arg)) {
-              case "string":
-              case "number":
-                $(ele).hide();
-                $(ele).filter(function() {
-                  return $.inArray(log.arg, $.isArray($(this).data('showarg')) ? $(this).data('showarg') : [$(this).data('showarg')]) >= 0;
-                }).show();
-                break;
-              case "boolean":
-                $(ele).hide();
-                if(_.isUndefined($(ele).data('showeventdata'))) $(ele).data('showeventdata', {});
-                var val = $(ele).data('showeventdata');
-                val[log.alias] = log.arg;
-                $(ele).data('showeventdata', val);
-                $.each($(ele).data('showeventdata'), function(i, e){
-                  if(e == true) $(ele).show();
-                });
-                // fix scroll for hidden console
-                $(ele).find('.nodel-console').scrollTop(999999);
-                break;
-            };
-          }
-        });
-        if(eles.length) updatepadding();
+        (function(log, ani) {
+          setTimeout(function() {process_showevent(log, ani), 0});
+        })(log, ani);
         // handle event data updates
-        var eles = $(".nodel-event").filter(function() {
-          return $.inArray(log.alias, $.isArray($(this).data('event')) ? $(this).data('event') : [$(this).data('event')]) >= 0;
-        });
-        $.each(eles, function (i, ele) {
-          if($.type(log.arg)== "object") log.arg = log.arg[$(ele).data('event-arg')];
-          if($(ele).hasClass('dynamic')) {
-            $(ele).data('dynamic',log);
-          }
-          switch ($.type(log.arg)) {
-            case "number":
-              if ($(ele).not('.meter, .signal').is("div")) {
-                $(ele).children().filter(function () {
-                  return $(this).attr("data-arg") > log.arg;
-                }).removeClass('btn-success').addClass('btn-default');
-                $(ele).children().filter(function () {
-                  return $(this).attr("data-arg") <= log.arg;
-                }).removeClass('btn-default').addClass('btn-success');
-              } else if ($(ele).is(".meter")) {
-                updatemeter(ele, log.arg);
-              } else if ($(ele).is(".signal")) {
-                updatesignal(ele, log.arg);
-              } else if($(ele).is("input")) {
-                $(ele).not('.active').val(log.arg);
-              } else if($(ele).hasClass('toint')) {
-                $(ele).text(parseInt(log.arg));
-              } else {
-                if ($(ele).is("output, span, h4, p")) $(ele).text(log.arg);
-                // lists
-                $(ele).children('li').has('a[data-arg]').removeClass('active');
-                $(ele).children('li').has('a[data-arg="' + log.arg + '"]').addClass('active');
-                // button select
-                $(ele).parents('.btn-select').children('button').children('span:first-child').text($(ele).children('li').has('a[data-arg="' + log.arg + '"]').text());
-                // pages
-                $("[data-page]").hide();
-                $('[data-page="' + log.arg + '"]').show();
-              }
-              break;
-            case "string":
-              if($(ele).hasClass('btn-pswitch')){
-                var arg = log.arg.toLowerCase().replace(/[^a-z]+/gi, "");
-                switch (arg) {
-                  case "on":
-                    $(ele).children('[data-arg="On"]').addClass($(ele).data('class-on')).removeClass('btn-default').removeClass('btn-warning');
-                    $(ele).children('[data-arg="Off"]').addClass('btn-default').removeClass($(ele).data('class-off')).removeClass('btn-warning');
-                    break
-                  case "off":
-                    $(ele).children('[data-arg="Off"]').addClass($(ele).data('class-off')).removeClass('btn-default').removeClass('btn-warning');
-                    $(ele).children('[data-arg="On"]').addClass('btn-default').removeClass($(ele).data('class-on')).removeClass('btn-warning');
-                    break;
-                  case "partiallyon":
-                    $(ele).children('[data-arg="On"]').addClass('btn-warning').removeClass('btn-default').removeClass($(ele).data('class-on'));
-                    $(ele).children('[data-arg="Off"]').addClass('btn-default').removeClass($(ele).data('class-off')).removeClass('btn-warning');
-                    break
-                  case "partiallyoff":
-                    $(ele).children('[data-arg="Off"]').addClass('btn-warning').removeClass('btn-default').removeClass($(ele).data('class-off'));
-                    $(ele).children('[data-arg="On"]').addClass('btn-default').removeClass($(ele).data('class-on')).removeClass('btn-warning');
-                    break;
-                }
-              } else if ($(ele).hasClass('label-pbadge')) {
-                var arg = log.arg.toLowerCase().replace(/[^a-z]+/gi, "");
-                switch (arg) {
-                  case "on":
-                    $(ele).text($(ele).data('on'));
-                    $(ele).addClass($(ele).data('class-on')).removeClass('label-default').removeClass('label-warning').removeClass($(ele).data('class-off'));
-                    break;
-                  case "off":
-                    $(ele).text($(ele).data('off'));
-                    $(ele).addClass($(ele).data('class-off')).removeClass('label-default').removeClass('label-warning').removeClass($(ele).data('class-on'));
-                    break;
-                  case "partiallyon":
-                    $(ele).text($(ele).data('on'));
-                    $(ele).addClass('label-warning').removeClass('label-default').removeClass($(ele).data('class-on')).removeClass($(ele).data('class-off'));
-                    break;
-                  case "partiallyoff":
-                    $(ele).text($(ele).data('off'))
-                    $(ele).addClass('label-warning').removeClass('label-default').removeClass($(ele).data('class-on')).removeClass($(ele).data('class-off'));
-                    break;
-                }
-              } else if ($(ele).hasClass('scrollbar-inner')) {
-                var arg = converter.makeHtml(log.arg);
-                $(ele).html(arg);
-              } else {
-                if ($(ele).is("span, h4, p")) $(ele).text(log.arg);
-                // lists
-                $(ele).children('li').has('a[data-arg]').removeClass('active');
-                $(ele).children('li').has('a[data-arg="' + log.arg + '"]').addClass('active');
-                // button select
-                $(ele).parents('.btn-select').children('button').children('span:first-child').text($(ele).children('li').has('a[data-arg="' + log.arg + '"]').text());
-                // pages
-                $("[data-page]").hide();
-                $('[data-page="' + log.arg + '"]').show();
-                if($(ele).is("input")) $(ele).not(':active').val(log.arg);
-                // image
-                if ($(ele).is("img")) $(ele).attr("src", log.arg);
-              }
-              break;
-            case "boolean":
-              if($(ele).hasClass('btn-switch')) {
-                if (log.arg) {
-                  $(ele).children('[data-arg=true]').addClass($(ele).data('class-on')).removeClass('btn-default');
-                  $(ele).children('[data-arg=false]').addClass('btn-default').removeClass($(ele).data('class-off'));
-                } else {
-                  $(ele).children('[data-arg=false]').addClass($(ele).data('class-off')).removeClass('btn-default');
-                  $(ele).children('[data-arg=true]').addClass('btn-default').removeClass($(ele).data('class-on'));                  
-                }
-              } else if($(ele).is("a.btn")) {
-                if (log.arg) $(ele).addClass($(ele).data('class-on')).removeClass('btn-default');
-                else $(ele).addClass('btn-default').removeClass($(ele).data('class-on'));
-              } else if($(ele).is("input[type='checkbox'")) {
-                $(ele).prop('checked',log.arg);
-              } else $(ele).val(log.arg);
-              break;
-            case "undefined":
-              if($(ele).is("span, h4, p, output")) $(ele).text('');
-              else if($(ele).is("input")) $(ele).not(':active').val('');
-              break;
-          }
-        });
-        var eles = $(".nodel-status").filter(function() {
-          return $.inArray(log.alias, $.isArray($(this).data('status')) ? $(this).data('status') : [$(this).data('status')]) >= 0;
-        });
-        $.each(eles, function (i, ele) {
-          var ele = $(ele);
-          var clstype = ele.hasClass('panel') ? 'panel' : 'label';
-          if(!_.isUndefined(log.arg) && !_.isUndefined(log.arg['level']) && _.isNumber(log.arg['level'])){
-            var msg = '';
-            if(!_.isUndefined(log.arg['message']) && _.isString(log.arg['message'])) msg = log.arg['message'];
-            ele.find('.status').not('[data-status]').text(msg);
-            if(ele.hasClass('status')) ele.text(msg);
-            switch(log.arg['level']) {
-              case 0:
-                ele.removeClass(clstype+'-default '+clstype+'-warning '+clstype+'-danger '+clstype+'-primary').addClass(clstype+'-success');
-                break;
-              case 1:
-                ele.removeClass(clstype+'-default '+clstype+'-success '+clstype+'-danger '+clstype+'-primary').addClass(clstype+'-warning');
-                break;
-              case 2:
-              case 3:
-              case 4:
-                ele.removeClass(clstype+'-default '+clstype+'-success '+clstype+'-warning '+clstype+'-primary').addClass(clstype+'-danger');
-                break;
-              case 5:
-                ele.removeClass(clstype+'-default '+clstype+'-success '+clstype+'-warning '+clstype+'-danger').addClass(clstype+'-primary');
-                break;
-            }
-          } else if(_.isBoolean(log.arg)) {
-            if (log.arg) $(ele).addClass(clstype+'-success').removeClass(clstype+'-default');
-            else $(ele).addClass(clstype+'-default').removeClass(clstype+'-success');
-          }
-        });
-        var eles = $(".nodel-render").filter(function() {
-          return $.inArray(log.alias, $.isArray($(this).data('render')) ? $(this).data('render') : [$(this).data('render')]) >= 0;
-        });
-        $.each(eles, function (i, ele) {
-          if($(ele).data('render-template')) {
-            try {
-              $(ele).html($($(ele).data('render-template')).render(log));
-              if(!_.isUndefined($(ele).data('dynamic'))) parseLog($(ele).data('dynamic'));
-            } catch(err) {
-              console.log(err.message);
-            } finally {
-              return true;
-            }
-          }
-        });
+        (function(log, ani) {
+          setTimeout(function() {process_event(log, ani), 0});
+        })(log, ani);
+        // handle status update
+        (function(log, ani) {
+          setTimeout(function() {process_status(log, ani), 0});
+        })(log, ani);
+        // handel dynamic templates
+        (function(log, ani) {
+          setTimeout(function() {process_render(log, ani), 0});
+        })(log, ani);
     }
   }
   if(log.source=='local'){
     // nodel forms
-    var eles = $(".nodel-schema-"+log.type).filter(function() {
-      return $.inArray(log.alias, $.isArray($(this).data('name')) ? $(this).data('name') : [$(this).data('name')]) >= 0;
-    });
-    $.each(eles, function (i, ele) {
-      $.observable($.view($(ele).find('.base')).data).setProperty({'arg':log.arg});
-      if(!ani) {
-        var col = log.type == 'action' ? colours['success'] : colours['danger'];
-        var def = colours['default'];
-        $(ele).find('button[type="submit"] > span').stop(true, true).css({'color': col}).animate({'color': def}, 1000);
-      };
-    });
+    (function(log, ani) {
+      setTimeout(function() {process_form(log, ani), 0});
+    })(log, ani);
     // nodel log
-    var eles = $(".nodel-log");
-    $.each(eles, function (i, ele) {
-      var data = $.view($(ele).find('.base')).data['logs'];
-      var ind = data.findIndex(function(_ref) {
-        id = _ref.type + '_' + _ref.alias;
-        return id == log.type + '_' + log.alias;
-      });
-      var entry = {
-        'alias':encodr(log.alias),
-        'type':log.type,
-        'arg':log.arg,
-        'timestamp': log.timestamp};
-      if(ind > -1) {
-        // lock height while updating to prevent scrolling
-        var ul = $(ele).find('ul');
-        $(ul).css("height", $(ul).height());
-        $.observable(data).move(ind, 0);
-        $.observable(data[0]).setProperty({'arg': entry.arg, 'timestamp': entry.timestamp});
-        $(ul).css("height", 'auto');
-      } else $.observable(data).insert(0, entry);
-      // animate icon
-      if(!ani) {
-        $(ele).find('.log_'+encodr(log.alias)+ ' .logicon').stop(true,true).css({'opacity': 1}).animate({'opacity': 0.2}, 1000);
-      }
-    });
+    (function(log, ani) {
+      setTimeout(function() {process_log(log, ani), 0});
+    })(log, ani);
   }
+  // process binding events
   if(log.source=='remote'){
     if(log.type == "eventBinding"){
       var eles = $(".nodel-remote");
