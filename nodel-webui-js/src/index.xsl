@@ -391,7 +391,7 @@
         <script id="objectTmpl" type="text/x-jsrender">
         <![CDATA[
           <div class="panel panel-default">
-            <div class="panel-heading accordion-toggle collapsed" data-toggle="collapse" data-target="#<%:~id%>_object_group" aria-expanded="false">
+            <div class="panel-heading accordion-toggle collapsed" data-toggle="collapse" data-link="data-target{:'#'+~idxid(~idx,'<%:~id%>_array_<%:~key%>')}" aria-expanded="false">
               <%if title%>
                 <div class="panel-title"><h5 class="panel-title"><%>title%></h5></div>
               <%else ~inobj || !~nokeytitle%>
@@ -400,7 +400,7 @@
                 <div class="panel-title"><h5 class="panel-title">&nbsp;</h5></div>
               <%/if%>
             </div>
-            <div id="<%:~id%>_object_group" class="panel-collapse collapse" aria-expanded="false">
+            <div data-link="id{:~idxid(~idx,'<%:~id%>_array_<%:~key%>')}" class="panel-collapse collapse" aria-expanded="false">
               <div class="panel-body">
               {^{if ~initObj('<%:~key%>', <%:~key%>)}}
                 {^{for <%:~key%>}}
@@ -419,7 +419,7 @@
         <script id="arrayTmpl" type="text/x-jsrender">
         <![CDATA[
           <div class="panel panel-default">
-            <div class="panel-heading accordion-toggle collapsed" data-toggle="collapse" data-target="#<%:~id%>_array_group" aria-expanded="false">
+            <div class="panel-heading accordion-toggle collapsed" data-toggle="collapse" data-link="data-target{:'#'+~idxid(~idx,'<%:~id%>_array_<%:~key%>')}" aria-expanded="false">
               <%if title%>
                 <div class="panel-title"><h5 class="panel-title"><%>title%></h5></div>
               <%else ~inobj || !~nokeytitle%>
@@ -428,7 +428,7 @@
                 <div class="panel-title"><h5 class="panel-title">&nbsp;</h5></div>
               <%/if%>
             </div>
-            <div id="<%:~id%>_array_group" class="panel-collapse collapse" aria-expanded="false">
+            <div data-link="id{:~idxid(~idx,'<%:~id%>_array_<%:~key%>')}" class="panel-collapse collapse" aria-expanded="false">
               <table class="table">
                 <tbody>
                   {^{if ~initArr('<%:~key%>', <%:~key%>)}}

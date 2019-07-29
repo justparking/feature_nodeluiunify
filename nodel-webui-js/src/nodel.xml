@@ -13,18 +13,6 @@
       </column>
     </row>
     <row>
-      <column sm="8" push="4">
-        <title>Actions &amp; Signals</title>
-        <nodel type="actsig"/>
-      </column>
-      <column sm="4" pull="8">
-        <title>Log</title>
-        <nodel type="log"/>
-      </column>
-    </row>
-  </page>
-  <page title='Config'>
-     <row>
       <column sm="12">
         <title>Console</title>
         <nodel type="console"/>
@@ -36,6 +24,18 @@
         <nodel type="editor"/>
       </column>
     </row>
+    <row>
+      <column sm="8" push="4">
+        <title>Actions &amp; Signals</title>
+        <nodel type="actsig"/>
+      </column>
+      <column sm="4" pull="8">
+        <title>Log</title>
+        <nodel type="log"/>
+      </column>
+    </row>
+  </page>
+  <page title='Config'>
     <row>
       <column sm="4">
         <title>Parameters</title>
