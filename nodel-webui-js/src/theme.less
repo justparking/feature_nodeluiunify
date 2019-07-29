@@ -513,7 +513,7 @@ div[data-nodel="log"] ul {
     word-wrap: break-word;
     position: relative;
     margin-bottom: 12px;
-    padding-left: 20px;
+    padding-left: 30px;
     .logtimestamp {
       color: @gray-light;
       font-size: @font-size-xxsmall;
@@ -526,20 +526,45 @@ div[data-nodel="log"] ul {
     .logicon {
       opacity: 0.2;
       &:before {
-        color: @text-color;
         font-family: 'Font Awesome 5 Free';
         font-weight: 900;
         position: absolute;
         left: 0;
       }
-    }
-    &[data-type="action"] .logicon:before {
-      content: '\f70c';
-      color: @brand-success;
-    }
-    &[data-type="event"] .logicon:before {
-      content: '\f637';
-      color: @brand-danger;
+      &.log_typ_action {
+        &.log_src_local {
+          color: @brand-success;
+          &:before {
+            content: '\f70c';
+          }
+        }
+        &.log_src_remote {
+          color: @brand-info;
+          &:before {
+            content: '\f70c\f060';
+          }
+        }
+      }
+      &.log_typ_event {
+        &.log_src_local {
+          color: @brand-danger;
+          &:before { 
+            content: '\f637';
+           }
+        }
+        &.log_src_remote {
+          color: @brand-warning;
+          &:before { 
+            content: '\f637\f060';
+           }
+        }
+      }
+      &.log_typ_actionBinding, &.log_typ_eventBinding {
+        &:before {
+          content: '\f0c1';
+        }
+        color: @brand-primary;
+      }
     }
   }
 }
@@ -785,6 +810,10 @@ div.nodel-charts {
   }
   .jsonkey {
     color: @brand-warning;
+  }
+  .hold {
+    white-space: nowrap;
+    margin-left: 10px;
   }
 }
 .srchgrp, .edtgrp {

@@ -2235,28 +2235,32 @@ var process_form = function(log, ani){
 
 var process_log = function(log, ani){
   var eles = $(".nodel-log");
+  var alias = encodr(log.alias);
   $.each(eles, function (i, ele) {
-    var data = $.view($(ele).find('.base')).data['logs'];
+    var src = $.view($(ele).find('.base')).data;
+    var data = src['logs'];
     var ind = data.findIndex(function(_ref) {
       id = _ref.type + '_' + _ref.alias;
-      return id == log.type + '_' + log.alias;
+      return id == log.type + '_' + alias;
     });
     var entry = {
-      'alias':encodr(log.alias),
+      'alias':alias,
+      'rawalias':log.alias,
       'type':log.type,
+      'source':log.source,
       'arg':log.arg,
       'timestamp': log.timestamp};
     if(ind > -1) {
       // lock height while updating to prevent scrolling
       var ul = $(ele).find('ul');
       $(ul).css("height", $(ul).height());
-      $.observable(data).move(ind, 0);
-      $.observable(data[0]).setProperty({'arg': entry.arg, 'timestamp': entry.timestamp});
+      $.observable(data[ind]).setProperty({'arg': entry.arg, 'timestamp': entry.timestamp});
+      if(!src.hold) $.observable(data).move(ind, 0);
       $(ul).css("height", 'auto');
     } else $.observable(data).insert(0, entry);
     // animate icon
     if(!ani) {
-      $(ele).find('.log_'+encodr(log.alias)+ ' .logicon').stop(true,true).css({'opacity': 1}).animate({'opacity': 0.2}, 1000);
+      $(ele).find('.log_'+log.type+'_'+alias+ ' .logicon').stop(true,true).css({'opacity': 1}).animate({'opacity': 0.2}, 1000);
     }
   });
 }
@@ -2296,10 +2300,6 @@ var parseLog = function(log, ani){
     (function(log, ani) {
       setTimeout(function() {process_form(log, ani), 0});
     })(log, ani);
-    // nodel log
-    (function(log, ani) {
-      setTimeout(function() {process_log(log, ani), 0});
-    })(log, ani);
   }
   // process binding events
   if(log.source=='remote'){
@@ -2321,4 +2321,8 @@ var parseLog = function(log, ani){
       });
     }
   }
+  // nodel log
+  (function(log, ani) {
+    setTimeout(function() {process_log(log, ani), 0});
+  })(log, ani);
 };
