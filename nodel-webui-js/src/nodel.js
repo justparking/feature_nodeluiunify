@@ -331,6 +331,7 @@ var checkRedirect = function(url) {
 var node = host = nodename = nodedesc = ''; //= opts = '';
 var converter = new Markdown.Converter();
 var unicodematch = new XRegExp("[^\\p{L}\\p{N}]", "gi");
+var simplematch = new RegExp(/^(.+?)(?:\(| \(|$)/i);
 var colours = {'primary':'','success':'','danger':'','warning':'','info':'','default':''};
 var throttle = {'logs': []};
 var allowedtxt = ['py','xml','xsl','js','json','html','htm','css','java','groovy','sql','sh','cs','bat','ini','txt','md','cmd'];
@@ -494,10 +495,10 @@ var createDynamicElements = function(){
     var d = $.Deferred();
     if($(ele).data('nodel') == 'actsig'){
       var reqs = [];
-      reqs.push($.getJSON('http://'+host+'/REST/nodes/'+encodeURIComponent(node)+'/actions', "", function(list) {
+      reqs.push($.getJSON('http://'+host+'/REST/nodes/'+encodeURIComponent(node)+'/actions', function(list) {
         actions = list;
       }));
-      reqs.push($.getJSON('http://'+host+'/REST/nodes/'+encodeURIComponent(node)+'/events', "", function(list) {
+      reqs.push($.getJSON('http://'+host+'/REST/nodes/'+encodeURIComponent(node)+'/events', function(list) {
         events = list;
       }));
       var forms = {"forms":[],"groups":{}};
@@ -544,7 +545,7 @@ var createDynamicElements = function(){
         });
       });
     } else if($(ele).data('nodel') == 'params'){
-      $.getJSON('http://'+host+'/REST/nodes/'+encodeURIComponent(node)+'/params/schema',"", function(data) {
+      $.getJSON('http://'+host+'/REST/nodes/'+encodeURIComponent(node)+'/params/schema', function(data) {
         if(!_.isEmpty(data)){
           $(ele).data('btntext','Save');
           $(ele).data('btncolour','success');
@@ -561,7 +562,7 @@ var createDynamicElements = function(){
         }
       }).fail(function(){d.resolve();});
     } else if($(ele).data('nodel') == 'remote'){
-      $.getJSON('http://'+host+'/REST/nodes/'+encodeURIComponent(node)+'/remote/schema',"", function(data) {
+      $.getJSON('http://'+host+'/REST/nodes/'+encodeURIComponent(node)+'/remote/schema', function(data) {
         if(!_.isEmpty(data)){
           $(ele).data('target','remote/save');
           $(ele).data('source','remote');
@@ -581,8 +582,8 @@ var createDynamicElements = function(){
         d.resolve();
       }).fail(function(){d.resolve();});
     } else if($(ele).data('nodel') == 'diagnostics'){
-      $.getJSON('http://'+host+'/REST/diagnostics',"", function(data) {
-        $.getJSON('http://'+host+'/build.json',"", function(build) {
+      $.getJSON('http://'+host+'/REST/diagnostics', function(data) {
+        $.getJSON('http://'+host+'/build.json', function(build) {
           $.extend(data, {'build':build});
           $.templates("#diagsTmpl").link(ele, data);
           d.resolve();
@@ -607,7 +608,12 @@ var createDynamicElements = function(){
 };
 
 var getSimpleName = function(name){
-  return new RegExp(/^(.+?)(?:\(| \(|$)/ig).exec(name)[1];
+  return simplematch.exec(name)[1];
+};
+
+var getVerySimpleName = function(name){
+  var smp = simplematch.exec(name);
+  return smp[1].replace(unicodematch,'');
 };
 
 var generateHostIcon = function(host) {
@@ -685,7 +691,7 @@ var getNodeList = function(filterstr){
   if(nodeListreq) nodeListreq.abort();
   // test list (for large Nodel networks performance testing)
   //nodeListreq = $.getJSON('http://'+host+'/nodes/Unify/nodeURLs.json', function(data) {
-  nodeListreq = $.getJSON('http://'+host+'/REST/nodeURLs', filter, function(data) {
+  nodeListreq = $.postJSON('http://'+host+'/REST/nodeURLs', JSON.stringify(filter), function(data) {
     for (i=0; i<data.length; i++) {
       var ind = -1;
       data[i].host = getHost(data[i].address);
@@ -735,12 +741,12 @@ var makeTemplate = function(ele, schema, tmpls){
   $.views.settings.delimiters("{{", "}}");
   var tmpl = $.templates(generatedTemplate);
   if(!(_.isUndefined($(ele).data('source'))) && ($(ele).data('source').charAt(0) != '/')){
-    $.getJSON('http://'+host+'/REST/nodes/'+encodeURIComponent(node)+'/'+$(ele).data('source'), "", function(data) {
+    $.getJSON('http://'+host+'/REST/nodes/'+encodeURIComponent(node)+'/'+$(ele).data('source'), function(data) {
       tmpl.link(ele, data);
       d.resolve();
     });
   } else if(!(_.isUndefined($(ele).data('source'))) && ($(ele).data('source').charAt(0) == '/')){
-    $.getJSON('http://'+host+'/REST'+$(ele).data('source'), "", function(data) {
+    $.getJSON('http://'+host+'/REST'+$(ele).data('source'), function(data) {
       tmpl.link(ele, data);
       d.resolve();
     }); 
@@ -891,7 +897,7 @@ var setEvents = function(){
         var lnode = data['events'][$(ele).data('link-event')]['node'];
         if(lnode!==''){
           newWindow.location = 'http://'+host+'/?filter='+lnode;
-          $.getJSON('http://'+host+'/REST/nodeURLsForNode',{'name':lnode}, function(data) {
+          $.postJSON('http://'+host+'/REST/nodeURLsForNode',JSON.stringify({'name':lnode}), function(data) {
             if (!_.isUndefined(data[0]['address'])){
               newWindow.location = data[0]['address'];
             }
@@ -1156,7 +1162,7 @@ var setEvents = function(){
         });
         if(data.length > 0){
           $.each(data, function(key, value) {
-            reqs.push($.getJSON('http://'+value.host+'/REST/nodes/'+encodeURIComponent(value.node)+'/'+type,"", function(data) {
+            reqs.push($.getJSON('http://'+value.host+'/REST/nodes/'+encodeURIComponent(value.node)+'/'+type, function(data) {
               $.each(data, function(key, value) {
                 if(value.name.search(new RegExp(srchflt, "ig")) >= 0) {
                   actsigs.push(value.name);
@@ -1223,7 +1229,7 @@ var setEvents = function(){
               var host = parser.host;
               $(parser).remove();
               var lnode = value.node;
-              reqs.push($.getJSON('http://'+host+'/REST/nodes/'+encodeURIComponent(lnode)+'/'+grp,"", function(data) {
+              reqs.push($.getJSON('http://'+host+'/REST/nodes/'+encodeURIComponent(lnode)+'/'+grp, function(data) {
                 $.each(data, function(key, value) {
                   strs.push(value.name);
                 });
@@ -1435,13 +1441,13 @@ var setEvents = function(){
     var nodenameraw = $(this).closest('.form').find('.renamenode').val();
     if(nodename != nodenameraw) {
       if(confirm('Are you sure?')) {
-        var nodename = {"value": nodenameraw};
-        $.getJSON('http://' + host + '/REST/nodes/' + encodeURIComponent(node) + '/rename', nodename, function (data) {
+        var nodename = JSON.stringify({"value": nodenameraw});
+        $.postJSON('http://' + host + '/REST/nodes/' + encodeURIComponent(node) + '/rename', nodename, function (data) {
           alert("Rename successful, redirecting", "success", 0);
           clearTimers();
-          checkRedirect('http://' + host + '/nodes/' + encodeURIComponent(getSimpleName(nodenameraw)));
+          checkRedirect('http://' + host + '/nodes/' + encodeURIComponent(getVerySimpleName(nodenameraw)));
         }).fail(function(e){
-          alert("Error renaming", "danger");
+          alert("Error renaming node", "danger");
         });
       }
     }
@@ -1500,9 +1506,9 @@ var setEvents = function(){
     if(nodenameraw) {
       var nodename = {"value": nodenameraw};
       if(recipeval) nodename["base"] = recipeval;
-      $.getJSON('http://' + host + '/REST/newNode', nodename, function() {
+      $.postJSON('http://' + host + '/REST/newNode', JSON.stringify(nodename), function() {
         $(ele).find('.open > button').dropdown('toggle');
-        checkRedirect('http://' + host + '/nodes/' + encodeURIComponent(getSimpleName(nodenameraw)));
+        checkRedirect('http://' + host + '/nodes/' + encodeURIComponent(getVerySimpleName(nodenameraw)));
       }).fail(function(req){
         if(req.statusText!="abort"){
           var error = 'Node add failed';
@@ -1684,7 +1690,7 @@ var fillPicker = function() {
   $.each(pickers, function(i,picker) {
     $(picker).empty();
     $(picker).append('<option value="" selected disabled hidden></option>');
-    $.getJSON('http://' + host + '/REST/nodes/' + encodeURIComponent(node) + '/files', "", function (data) {
+    $.getJSON('http://' + host + '/REST/nodes/' + encodeURIComponent(node) + '/files', function (data) {
       data.sort(function(a, b){
         if (a['path'] == b['path']) return 0;
         if (a['path'] > b['path']) return 1;
@@ -1708,7 +1714,7 @@ var fillUIPicker = function() {
   $.each(pickers, function(i,picker) {
     $(picker).empty();
     $(picker).append('<option value="" selected disabled hidden>select UI</option>');
-    $.getJSON('http://' + host + '/REST/nodes/' + encodeURIComponent(node) + '/files', "", function (data) {
+    $.getJSON('http://' + host + '/REST/nodes/' + encodeURIComponent(node) + '/files', function (data) {
       data.sort(function(a, b){
         if (a['path'] == b['path']) return 0;
         if (a['path'] > b['path']) return 1;
