@@ -428,7 +428,8 @@ var initEditor = function(){
     var editor = CodeMirror.fromTextArea(this, {
       lineNumbers: true,
       matchBrackets: true,
-      autoRefresh: true
+      autoRefresh: true,
+      tabSize: 2
     });
     cmResize(editor, {resizableWidth: false});
     var counter = 0;
@@ -467,6 +468,10 @@ var initEditor = function(){
           $(ele).closest('.editor').removeClass('drop');
         }
       }
+    });
+    editor.setOption("extraKeys", {
+      Tab: (cm) => cm.execCommand("indentMore"),
+      "Shift-Tab": (cm) => cm.execCommand("indentLess")
     });
     $(this).data('editor', editor);
     $(ele).closest('.base').find('.picker').data('goto','script.py');
