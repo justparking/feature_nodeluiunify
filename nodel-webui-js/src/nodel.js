@@ -491,7 +491,7 @@ var initToolkit = function(){
       autoRefresh: true
     });
     cmResize(editor, {resizableWidth: false})
-    editor.setOption('readOnly', 'nocursor');
+    editor.setOption('readOnly');
     editor.setOption('mode', 'python');
   });
 };
