@@ -20,7 +20,7 @@
     </row>
     <row>
       <column sm="12">
-        <title>Editor</title>
+        <title>Recipe</title>
         <nodel type="editor"/>
       </column>
     </row>
