@@ -470,8 +470,12 @@ var initEditor = function(){
       }
     });
     editor.setOption("extraKeys", {
-      Tab: (cm) => cm.execCommand("indentMore"),
-      "Shift-Tab": (cm) => cm.execCommand("indentLess")
+      Tab: function Tab(cm) {
+        return cm.execCommand("indentMore");
+      },
+      "Shift-Tab": function ShiftTab(cm) {
+        return cm.execCommand("indentLess");
+      }
     });
     $(this).data('editor', editor);
     $(ele).closest('.base').find('.picker').data('goto','script.py');
