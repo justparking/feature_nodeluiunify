@@ -2074,14 +2074,19 @@ var process_event = function(log, ani){
           $(ele).children().filter(function () {
             return $(this).attr("data-arg") <= log.arg;
           }).removeClass('btn-default').addClass('btn-success');
-        } else if ($(ele).is(".meter")) {
+        } else if ($(ele).hasClass(".meter")) {
           updatemeter(ele, log.arg);
-        } else if ($(ele).is(".signal")) {
+        } else if ($(ele).hasClass(".signal")) {
           updatesignal(ele, log.arg);
-        } else if($(ele).is("input")) {
+        } else if ($(ele).is("input")) {
           $(ele).not('.active').val(log.arg);
-        } else if($(ele).hasClass('toint')) {
+        } else if ($(ele).hasClass('toint')) {
           $(ele).text(parseInt(log.arg));
+        } else if ($(ele).hasClass('btn')) {
+          $(ele).removeClass($(ele).data('class-on'));
+          $(ele).filter(function() {
+            return $.inArray(log.arg, $.isArray($(this).data('arg')) ? $(this).data('arg') : [$(this).data('arg')]) >= 0;
+          }).addClass($(ele).data('class-on'));
         } else {
           if ($(ele).is("output, span, h4, p")) $(ele).text(log.arg);
           // lists
@@ -2138,6 +2143,11 @@ var process_event = function(log, ani){
         } else if ($(ele).hasClass('scrollbar-inner')) {
           var arg = converter.makeHtml(log.arg);
           $(ele).html(arg);
+        } else if ($(ele).hasClass('btn')) {
+          $(ele).removeClass($(ele).data('class-on'));
+          $(ele).filter(function() {
+            return $.inArray(log.arg, $.isArray($(this).data('arg')) ? $(this).data('arg') : [$(this).data('arg')]) >= 0;
+          }).addClass($(ele).data('class-on'));
         } else {
           if ($(ele).is("span, h4, p")) $(ele).text(log.arg);
           // lists
