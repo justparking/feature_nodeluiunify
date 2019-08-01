@@ -1493,12 +1493,12 @@ var setEvents = function(){
           var readme = (typeof value.readme == 'undefined') ? "" : $('<div/>').text(value.readme).html();
           $(picker).append('<option value="' + value.path + '" title="' + readme + '">' + value.path + '</option>');
         });
-        $(ele).find('.nodeaddsubmit').prop('disabled', false);
       } else {
         $(ele).find('.recipepicker').append('<option value="error">-- no recipes available --</option>');
       }
     }).fail(function(){
       $(ele).find('.recipepicker').append('<option value="error">-- no recipes available --</option>');
+    }).always(function(){
       $(ele).find('.nodeaddsubmit').prop('disabled', false);
     });
     //return false;
@@ -1514,7 +1514,7 @@ var setEvents = function(){
     var recipeval = $(ele).find('.recipepicker').val();
     if(nodenameraw) {
       var nodename = {"value": nodenameraw};
-      if(recipeval) nodename["base"] = recipeval;
+      if(recipeval && (recipeval !== 'error')) nodename["base"] = recipeval;
       $.postJSON('http://' + host + '/REST/newNode', JSON.stringify(nodename), function() {
         $(ele).find('.open > button').dropdown('toggle');
         checkRedirect('http://' + host + '/nodes/' + encodeURIComponent(getVerySimpleName(nodenameraw)));
