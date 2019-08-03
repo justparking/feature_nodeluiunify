@@ -573,7 +573,9 @@
                                                     <%>title%>
                                                     {^{if ~initHid('_$status')}}
                                                       {^{if _$status == 'Wired'}}
-                                                        <a data-link="href{:_$link}"><span class="binding wired fas fa-link"></span></a>
+                                                        {^{for _$link sort=~sortReachable end=1}}
+                                                          <a data-link="href{:address}"><span class="binding wired fas fa-link" data-link="class{:reachable?'binding wired fas fa-link reachable':'binding wired fas fa-link'}"></span></a>
+                                                        {{/for}}
                                                       {{/if}}
                                                     {{/if}}
                                                   </label>

@@ -88,8 +88,14 @@ $.views.helpers({
       }
       return '<span class="' + cls + '">' + match + '</span>';
     });
+  },
+  sortReachable: function(a,b) {
+    console.log('sorting');
+    return b.reachable - a.reachable;
   }
 });
+
+$.views.helpers.sortReachable.depends = "**";
 
 $.views.converters({
   intToStr: function(value) {
@@ -339,6 +345,27 @@ var allowedbinary = ['png','jpg','ico'];
 var nodeList = {'lst':[], 'flt':'', 'end':20, 'hosts':{}};
 var nodeListreq = null;
 
+var checkBindLinks = function(ev, eventArgs) {
+  if((ev.type == "propertyChange") && (eventArgs.path == "reachable")) {
+    var host = decodr(ev.data.observeAll.path().split(".").pop());
+    var data = $.view($(".nodel-actsig")).data;
+    var group = ['actions','events'];
+    for (var y=0; y<group.length; y++) {
+      for (var name in data[group[y]]) {
+        if (data[group[y]].hasOwnProperty(name)) {
+          for (var i=0; i<data[group[y]][name]._$link.length; i++) {
+            if(data[group[y]][name]._$link[i].host == host) {
+              $.observable(data[group[y]][name]._$link[i]).setProperty("reachable", eventArgs.value);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+$.observable(nodeList).observeAll(checkBindLinks);
+
 $(function() {
   host = document.location.hostname + ':' + window.document.location.port;
   $('.nodel-icon img').attr("src", "data:image/svg+xml;base64,"+generateHostIcon(host));
@@ -359,6 +386,7 @@ $(function() {
         updateConsoleForm();
         updateLogForm();
         updateCharts();
+        checkHostList();
         setEvents();
         updateLogs();
         // selecct page
@@ -380,6 +408,7 @@ $(function() {
     $.when(createDynamicElements().then(function(){
       updatepadding();
       getNodeList();
+      checkHostList();
       setEvents();
       updateLogForm();
       updateCharts();
@@ -710,7 +739,6 @@ var getNodeList = function(filterstr){
     }
     $.observable(nodeList['lst']).refresh(data);
   }).always(function(){
-    if(_.isUndefined($('body').data('hostlistTimer'))) checkHostList();
     d.resolve();
   });
   return d.promise();
@@ -814,17 +842,17 @@ var convertNames = function(){
   });
 };
 
-// need to fix
 var linkToNode = function(node, grp, name){
-  $.getJSON('http://'+host+'/REST/nodeURLsForNode', node, function(data) {
+  var arg = {name: node};
+  $.postJSON('http://'+host+'/REST/nodeURLsForNode', JSON.stringify(arg), function(data) {
     for (i=0; i<data.length; i++) {
       data[i].host = getHost(data[i].address);
       if(_.isUndefined(nodeList['hosts'][encodr(data[i].host)])) updateHost(data[i].host);
+      data[i].reachable = false;
     }
     $('.nodel-remote').each(function(){
       var rdata = $.view(this).data;
-      // need to check for reachability
-      $.observable(rdata).setProperty(grp+'.'+name+'._$link', data[0].address);
+      $.observable(rdata).setProperty(grp+'.'+name+'._$link', data);
     });
   });
 };
