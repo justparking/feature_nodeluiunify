@@ -90,7 +90,6 @@ $.views.helpers({
     });
   },
   sortReachable: function(a,b) {
-    console.log('sorting');
     return b.reachable - a.reachable;
   }
 });
