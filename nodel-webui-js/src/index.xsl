@@ -273,8 +273,8 @@
         </div>
         <!-- end offline modal -->
         <!-- alert -->
-        <div class="alert collapse alert-floating">
-          <span class="message"></span>
+        <div class="alert collapse alert-floating alert-info">
+          <div class="message"></div>
         </div>
         <!-- end alert -->
         <!-- pages -->

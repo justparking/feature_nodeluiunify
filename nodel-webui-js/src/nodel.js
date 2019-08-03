@@ -308,11 +308,15 @@ var caretToEnd = function(ele) {
   }
 }
 
-var alert = function(message, type, duration){
+var alert = function(message, type, duration, body){
   var cls = type || "success";
   duration = _.isNumber(duration) ? duration : 3000;
   clearTimeout($('.alert').stop().data('timer'));
-  $('.alert').removeClass('alert-danger alert-success').addClass('alert-'+cls).children('span.message').html('<div>'+message+'</div>');
+  $('.alert').removeClass('alert-danger alert-success alert-warning').addClass('alert-'+cls).children('div.message').empty().append('<span>'+message+'</span>');
+  if(body) {
+    body = $('<div/>').text(body).html()
+    $('.alert').children('div.message').append('<br/><span class="detail">'+body+'</span>');
+  }
   $('.alert').slideDown(function() {
     var elem = $(this);
     if(duration>0) $.data(this, 'timer', setTimeout(function() { elem.slideUp(); }, duration));
@@ -1005,8 +1009,8 @@ var setEvents = function(){
       $.postJSON('http://'+host+'/REST/nodes/'+encodeURIComponent(node)+'/'+$(this).parent().data('target'), JSON.stringify(tosend), function () {
         console.log(nme+': success');
         if(alt) alert(alt);
-      }).fail(function(){
-        alert('Error', 'danger');
+      }).fail(function(e){
+        alert('Error', 'danger', 7000, e.responseText);
       });
     }
   });
@@ -1343,7 +1347,7 @@ var setEvents = function(){
           $(ele).find('.script_delete').prop("disabled", false);
         }
       }).fail(function(e){
-        alert("Error loading file: "+path, "danger");
+        alert("Error loading file: "+path, "danger", 7000, e.responseText);
       });
     }
   });
@@ -1361,7 +1365,7 @@ var setEvents = function(){
       $.postJSON(url, payload, function (data) {
         alert("File saved: "+path);
       }).fail(function(e){
-        alert("Error saving file: "+path, "danger");
+        alert("Error saving file: "+path, "danger", 7000, e.responseText);
       }).always(function(){
         editor.setOption('readOnly', false);
         $(ele).find('.script_save, .script_delete').prop("disabled", false);
@@ -1373,7 +1377,7 @@ var setEvents = function(){
       $.ajax({url:url, type:"POST", data:payload, contentType:"application/octet-stream", success: function (data) {
         alert("File saved: "+path);
       }}).fail(function(e){
-        alert("Error saving file: "+path, "danger");
+        alert("Error saving file: "+path, "danger", 7000, e.responseText);
       }).always(function(){
         editor.setOption('readOnly', false);
         $(ele).find('.script_save, .script_delete').prop("disabled", false);
@@ -1394,7 +1398,7 @@ var setEvents = function(){
         fillPicker();
         fillUIPicker();
       }).fail(function(e){
-        alert("Error deleting file: "+path, "danger");
+        alert("Error deleting file: "+path, "danger", 7000, e.responseText);
       }).always(function(){
         $(ele).find('.script_save, .script_delete').prop("disabled", false);
         editor.setOption('readOnly', false);
@@ -1429,12 +1433,7 @@ var setEvents = function(){
         fillUIPicker();
       }}).fail(function (req) {
         if (req.statusText != "abort") {
-          var error = 'File add failed';
-          if (req.responseText) {
-            var message = JSON.parse(req.responseText);
-            error = error + '<br/>' + message['message'];
-          }
-          alert(error, 'danger');
+          alert('File add failed', 'danger', 7000, JSON.parse(req.responseText));
         }
       });
       return false;
@@ -1483,7 +1482,7 @@ var setEvents = function(){
           clearTimers();
           checkRedirect('http://' + host + '/nodes/' + encodeURIComponent(getVerySimpleName(nodenameraw)));
         }).fail(function(e){
-          alert("Error renaming node", "danger");
+          alert("Error renaming node", "danger", 7000, e.responseText);
         });
       }
     }
@@ -1492,7 +1491,7 @@ var setEvents = function(){
     $.get('http://' + host + '/REST/nodes/' + encodeURIComponent(node) + '/restart', function (data) {
       alert("Restarting, please wait", "success", 7000);
     }).fail(function(e){
-      alert("Error restarting", "danger");
+      alert("Error restarting", "danger", 7000, e.responseText);
     });
   });
   $('body').on('click', '.deletenodesubmit', function (e) {
@@ -1502,7 +1501,7 @@ var setEvents = function(){
         clearTimers();
         setTimeout(function() { window.location.href = 'http://' + host; }, 3000);
       }).fail(function(e){
-        alert("Error deleting", "danger");
+        alert("Error deleting", "danger", 7000, e.responseText);
       });
     }
   });
