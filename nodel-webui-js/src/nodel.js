@@ -951,6 +951,7 @@ var setEvents = function(){
     window.open($(this).data('link-url'));
   });
   $('body').on('click', '*[data-nav]', function (e) {
+    e.preventDefault();
     var id = $(this).data('nav');
     $('*[data-nav]').parents('li').removeClass('active');
     $('*[data-nav="'+id+'"]').parents('li').addClass('active');
