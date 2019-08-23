@@ -8,6 +8,7 @@ module.exports = function(grunt) {
           fontPath: './build/grunt/v1/fonts/',
           cssFile: './temp/googlefonts.css',
           httpPath: '../fonts/',
+          formats: {woff: true, woff2: true},
           fonts: [
             {
               family: 'Roboto',
