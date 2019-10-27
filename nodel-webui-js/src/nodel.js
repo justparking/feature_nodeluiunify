@@ -2105,9 +2105,9 @@ var process_event = function(log, ani){
           $(ele).children().filter(function () {
             return $(this).attr("data-arg") <= log.arg;
           }).removeClass('btn-default').addClass('btn-success');
-        } else if ($(ele).hasClass(".meter")) {
+        } else if ($(ele).hasClass("meter")) {
           updatemeter(ele, log.arg);
-        } else if ($(ele).hasClass(".signal")) {
+        } else if ($(ele).hasClass("signal")) {
           updatesignal(ele, log.arg);
         } else if ($(ele).is("input")) {
           $(ele).not('.active').val(log.arg);
