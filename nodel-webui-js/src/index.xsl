@@ -499,7 +499,7 @@
             <%else ~inobj || !~nokeytitle%>
               <label data-link="for{:~idxid(~idx,'<%:~id%>_field_<%:~key%>')}"><%>~key%></label>
             <%/if%>
-            <input title="<%>desc%>" type="number" class="form-control" placeholder="<%>hint%>" data-link="{intToStr:<%:~key%>:strToInt} id{:~idxid(~idx,'<%:~id%>_field_<%:~key%>')}"/>
+            <input title="<%>desc%>" type="number" class="form-control" placeholder="<%>hint%>" step="any" data-link="{intToStr:<%:~key%>:strToInt} id{:~idxid(~idx,'<%:~id%>_field_<%:~key%>')}"/>
           </div>
         ]]>
         </script>
