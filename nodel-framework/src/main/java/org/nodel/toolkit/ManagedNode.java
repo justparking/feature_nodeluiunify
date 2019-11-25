@@ -73,7 +73,9 @@ public class ManagedNode extends BaseNode {
             if (_closed)
                 throw new IllegalStateException("Node is closed.");
             
-            final NodelServerAction action = new NodelServerAction(_name, new SimpleName(Nodel.reduce(actionName)), metadata);
+            // from v2.2 action names are not being strictly reduced
+            
+            final NodelServerAction action = new NodelServerAction(_name, new SimpleName(actionName), metadata);
             action.registerAction(new ActionRequestHandler() {
 
                 @Override
@@ -116,7 +118,9 @@ public class ManagedNode extends BaseNode {
             if (_closed)
                 throw new IllegalStateException("Node is closed.");
 
-            final NodelServerEvent event = new NodelServerEvent(_name, new SimpleName(Nodel.reduce(eventName)), metadata);
+            // from version 2.2 event names are not being strictly reduced
+            
+            final NodelServerEvent event = new NodelServerEvent(_name, new SimpleName(eventName), metadata);
             event.setThreadingEnvironment(_callbackQueue, _threadStateHandler, _emitExceptionHandler);
             event.attachMonitor(new Handler.H2<DateTime, Object>() {
                 
