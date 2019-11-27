@@ -624,7 +624,7 @@ public class ManagedToolkit {
             if (_closed)
                 throw new IllegalStateException("Node is closed.");
             
-            final NodelServerAction action = new NodelServerAction(_node.getName(), new SimpleName(actionName), metadata);
+            final NodelServerAction action = new NodelServerAction(_node.getName(), new SimpleName(Nodel.reduce(actionName)), metadata);
             action.registerAction(new ActionRequestHandler() {
 
                 @Override
@@ -674,7 +674,7 @@ public class ManagedToolkit {
             if (_closed)
                 throw new IllegalStateException("Node is closed.");
 
-            NodelServerEvent event = new NodelServerEvent(_node.getName(), new SimpleName(eventName), metadata);
+            NodelServerEvent event = new NodelServerEvent(_node.getName(), new SimpleName(Nodel.reduce(eventName)), metadata);
             event.setThreadingEnvironment(_callbackQueue, _threadStateHandler, _emitExceptionHandler);
             _node.injectLocalEvent(event);
 
